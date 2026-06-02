@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/components/folder-tabs/**/*.ts", "src/components/folder-tabs/**/*.vue"]
+}
+

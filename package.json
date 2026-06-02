@@ -1,0 +1,71 @@
+{
+  "$schema": "https://www.schemastore.org/package.json",
+  "name": "@bdteo/folder-tabs",
+  "version": "0.1.0",
+  "description": "Tactile, orientation-aware folder/index tabs for Vue.",
+  "type": "module",
+  "packageManager": "pnpm@10.15.1",
+  "license": "MIT",
+  "author": "Boris D. Teoharov <boristeoharov@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bdteo/folder-tabs.git"
+  },
+  "homepage": "https://github.com/bdteo/folder-tabs#readme",
+  "bugs": {
+    "url": "https://github.com/bdteo/folder-tabs/issues"
+  },
+  "keywords": [
+    "vue",
+    "tabs",
+    "folder-tabs",
+    "index-tabs",
+    "shadcn-vue",
+    "accessibility",
+    "component"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/folder-tabs.umd.cjs",
+  "module": "./dist/folder-tabs.js",
+  "types": "./dist/index.d.ts",
+  "style": "./dist/folder-tabs.css",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/folder-tabs.js",
+      "require": "./dist/folder-tabs.umd.cjs"
+    },
+    "./style.css": "./dist/folder-tabs.css",
+    "./source": "./src/components/folder-tabs/index.ts"
+  },
+  "files": [
+    "dist",
+    "registry",
+    "src/components/folder-tabs"
+  ],
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vue-tsc --noEmit && vite build --config vite.lib.config.ts",
+    "build:demo": "vite build --outDir dist-demo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^27.0.0",
+    "typescript": "^5.9.0",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.5.0",
+    "vitest": "^4.0.18",
+    "vue": "^3.5.0",
+    "vue-tsc": "^2.2.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "folder-tabs",
+  "type": "registry:ui",
+  "title": "Folder Tabs",
+  "description": "Tactile, orientation-aware folder/index tabs for Vue.",
+  "dependencies": [],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "FolderTabs.vue",
+      "type": "registry:ui",
+      "target": "components/ui/folder-tabs/FolderTabs.vue"
+    },
+    {
+      "path": "folderTabs.ts",
+      "type": "registry:lib",
+      "target": "components/ui/folder-tabs/folderTabs.ts"
+    },
+    {
+      "path": "folder-tabs.css",
+      "type": "registry:style",
+      "target": "components/ui/folder-tabs/folder-tabs.css"
+    },
+    {
+      "path": "index.ts",
+      "type": "registry:lib",
+      "target": "components/ui/folder-tabs/index.ts"
+    }
+  ]
+}
+
