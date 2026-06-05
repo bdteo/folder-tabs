@@ -22,8 +22,8 @@ body {
   min-block-size: 100vh;
   overflow-x: clip;
   background:
-    radial-gradient(circle at 12% 18%, rgba(124, 187, 167, 0.24), transparent 26rem),
-    radial-gradient(circle at 84% 10%, rgba(220, 89, 71, 0.16), transparent 22rem),
+    linear-gradient(118deg, rgba(124, 187, 167, 0.2) 0%, transparent 34%),
+    linear-gradient(236deg, rgba(220, 89, 71, 0.14) 0%, transparent 32%),
     linear-gradient(135deg, #101311 0%, #171716 54%, #20211e 100%);
 }
 
@@ -59,16 +59,16 @@ select {
 .demo-hero h1 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(3.25rem, 12vw, 9rem);
+  font-size: 8rem;
   font-weight: 500;
-  line-height: 0.85;
+  line-height: 1.13;
 }
 
 .demo-lede {
   max-inline-size: 40rem;
   margin: 0;
   color: #c6c0b5;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-size: 1.2rem;
   line-height: 1.55;
 }
 
@@ -113,8 +113,8 @@ select {
 .demo-file h2,
 .demo-dossier h2 {
   margin: 0;
-  font-size: clamp(1.8rem, 5vw, 4rem);
-  line-height: 0.95;
+  font-size: 3.5rem;
+  line-height: 1.36;
 }
 
 .demo-file p,
@@ -139,12 +139,12 @@ select {
   align-self: start;
   grid-column: 2;
   grid-row: 1;
-  inline-size: clamp(4rem, 10vw, 8rem);
-  block-size: clamp(4rem, 10vw, 8rem);
+  inline-size: 7rem;
+  block-size: 7rem;
   border: 1px solid #6f6a60;
   color: #f6f2e8;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 8vw, 5rem);
+  font-size: 4.5rem;
 }
 
 .demo-file__tray {
@@ -198,6 +198,11 @@ select {
   grid-column: 1 / -1;
 }
 
+.demo-stage--right {
+  grid-column: 2;
+  grid-row: 2;
+}
+
 .demo-photo {
   display: grid;
   place-items: end start;
@@ -240,9 +245,20 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .demo-hero h1 {
+    font-size: 5.5rem;
+  }
+
+  .demo-file h2,
+  .demo-dossier h2 {
+    font-size: 3rem;
+  }
+
   .demo-stage--wide,
-  .demo-stage--compact {
+  .demo-stage--compact,
+  .demo-stage--right {
     grid-column: auto;
+    grid-row: auto;
   }
 }
 
@@ -250,6 +266,25 @@ select {
   .demo-shell {
     width: min(100vw - 1rem, 32rem);
     padding-block-start: 1rem;
+  }
+
+  .demo-hero h1 {
+    font-size: 3.75rem;
+  }
+
+  .demo-lede {
+    font-size: 1.05rem;
+  }
+
+  .demo-file h2,
+  .demo-dossier h2 {
+    font-size: 2.15rem;
+  }
+
+  .demo-file__stamp {
+    inline-size: 4rem;
+    block-size: 4rem;
+    font-size: 2.25rem;
   }
 
   .demo-dossier {

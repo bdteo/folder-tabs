@@ -882,6 +882,7 @@
 
   display: block;
   min-inline-size: 0;
+  overflow-y: visible;
   position: relative;
   z-index: 0;
   isolation: isolate;
@@ -970,6 +971,7 @@
 .folder-attachment__content {
   position: relative;
   z-index: 1;
+  inline-size: 100%;
   min-inline-size: 0;
 }
 
@@ -983,12 +985,14 @@
 
 .folder-attachment--edge-left {
   padding-inline-start: calc(var(--folder-attached-tab-cross-size) + var(--folder-attached-tab-gap));
+  overflow-x: clip;
 }
 
 .folder-attachment--edge-right {
   --ft-label-rotation: 90deg;
 
   padding-inline-end: calc(var(--folder-attached-tab-cross-size) + var(--folder-attached-tab-gap));
+  overflow-x: clip;
 }
 
 .folder-attachment__tab {
@@ -1286,8 +1290,8 @@
 }
 
 .folder-attachment__measurer {
-  position: absolute;
-  inset: auto auto 0 0;
+  position: fixed;
+  inset: 0 auto auto 0;
   z-index: -1;
   display: flex;
   gap: 0;
@@ -1349,7 +1353,8 @@
   .folder-attachment__tab,
   .folder-attachment__tab-icon,
   .folder-attachment__tab-label,
-  .folder-attachment__tab-count {
+  .folder-attachment__tab-count,
+  .folder-attachment__tab-lock {
     transition: none;
   }
 }
