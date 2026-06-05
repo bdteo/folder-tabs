@@ -7,12 +7,17 @@ export type FolderTabDensity = 'spread' | 'overlap' | 'dense';
 export type FolderTabActivation = 'automatic' | 'manual';
 export type FolderTabExpandOn = 'active' | 'hover' | 'focus' | 'always';
 export type FolderTabGravity = 'start' | 'center' | 'end';
+export type FolderTabAppearance = 'rail' | 'stack';
+export type FolderBinderDepth = 'flat' | 'subtle' | 'raised' | 'deep';
+export type FolderTabPanelStackDepth = FolderBinderDepth;
+export type FolderTone = 'slate' | 'moss' | 'teal' | 'copper' | 'violet';
 
 export interface FolderTabItem {
   key: FolderTabKey;
   label: string;
   shortLabel?: string;
   srLabel?: string;
+  tone?: FolderTone;
   icon?: Component | null;
   count?: string | number | null;
   countLabel?: string | number | null;
@@ -125,4 +130,3 @@ export function getFolderTabNavigationTarget(
 
   return keyActions[key]?.() ?? null;
 }
-

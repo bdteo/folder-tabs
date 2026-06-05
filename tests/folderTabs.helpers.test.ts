@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getFolderDensityOverlap,
+  getFolderEdgeVector,
+  getFolderHoverOffset,
+  getFolderStackSlots,
+  type FolderTabMeasurement,
+} from '../src/components/folder-tabs/folderGeometry';
+import {
   getAdjacentFolderTabKey,
   getFirstFolderTabKey,
   getFolderTabAccessibleLabel,
@@ -57,5 +64,54 @@ describe('folder tab helpers', () => {
     expect(normalizeFolderTabEdge(undefined, 'vertical')).toBe('left');
     expect(normalizeFolderTabEdge('right', 'vertical')).toBe('right');
   });
-});
 
+  it('maps folder edges to canonical pull vectors', () => {
+    expect(getFolderEdgeVector('left')).toMatchObject({ axis: 'x', sign: -1, x: -1, y: 0 });
+    expect(getFolderEdgeVector('right')).toMatchObject({ axis: 'x', sign: 1, x: 1, y: 0 });
+    expect(getFolderEdgeVector('top')).toMatchObject({ axis: 'y', sign: -1, x: 0, y: -1 });
+    expect(getFolderEdgeVector('bottom')).toMatchObject({ axis: 'y', sign: 1, x: 0, y: 1 });
+  });
+
+  it('aligns hover offset with the folder edge', () => {
+    expect(getFolderHoverOffset('left')).toEqual({ x: 0, y: 0 });
+    expect(getFolderHoverOffset('right')).toEqual({ x: 0, y: 0 });
+    expect(getFolderHoverOffset('top')).toEqual({ x: 0, y: 0 });
+    expect(getFolderHoverOffset('bottom')).toEqual({ x: 0, y: 0 });
+  });
+
+  it('uses measured tab geometry to reserve the active folder slot', () => {
+    const measurements: FolderTabMeasurement[] = [
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 120 },
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 160 },
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 100 },
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 140 },
+    ];
+
+    expect(getFolderDensityOverlap('overlap', 'stack')).toBe(10);
+    expect(getFolderStackSlots({
+      activeIndex: 1,
+      appearance: 'stack',
+      density: 'overlap',
+      measurements,
+      orientation: 'vertical',
+    })).toEqual([0, 34, 194, 228]);
+  });
+
+  it('can reserve multiple expanded physical slots', () => {
+    const measurements: FolderTabMeasurement[] = [
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 120 },
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 160 },
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 100 },
+      { compactBlockSize: 44, compactInlineSize: 44, openInlineSize: 140 },
+    ];
+
+    expect(getFolderStackSlots({
+      activeIndex: 1,
+      appearance: 'stack',
+      density: 'overlap',
+      expandedIndexes: [0, 2],
+      measurements,
+      orientation: 'vertical',
+    })).toEqual([0, 120, 154, 254]);
+  });
+});

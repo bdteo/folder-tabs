@@ -20,6 +20,7 @@ body {
   margin: 0;
   min-inline-size: 320px;
   min-block-size: 100vh;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 12% 18%, rgba(124, 187, 167, 0.24), transparent 26rem),
     radial-gradient(circle at 84% 10%, rgba(220, 89, 71, 0.16), transparent 22rem),
@@ -98,10 +99,7 @@ select {
 .demo-file,
 .demo-dossier,
 .demo-photo {
-  border: 1px solid #454941;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 38%),
-    #1b1d1a;
+  overflow: hidden;
 }
 
 .demo-file {
@@ -138,6 +136,9 @@ select {
 .demo-file__stamp {
   display: grid;
   place-items: center;
+  align-self: start;
+  grid-column: 2;
+  grid-row: 1;
   inline-size: clamp(4rem, 10vw, 8rem);
   block-size: clamp(4rem, 10vw, 8rem);
   border: 1px solid #6f6a60;
@@ -146,15 +147,19 @@ select {
   font-size: clamp(2rem, 8vw, 5rem);
 }
 
-.demo-stage--split,
-.demo-stage--right {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-}
-
-.demo-stage--right {
-  grid-template-columns: minmax(0, 1fr) auto;
+.demo-file__tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-self: end;
+  grid-column: 1 / -1;
+  border-block-start: 1px solid rgba(111, 106, 96, 0.54);
+  padding-block-start: 1rem;
+  color: #aaa69a;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .demo-dossier {
@@ -164,6 +169,29 @@ select {
 
 .demo-dossier--right {
   text-align: end;
+}
+
+.demo-signal-strip,
+.demo-handoff-list {
+  display: grid;
+  gap: 0.65rem;
+  max-inline-size: 22rem;
+  margin-block-start: clamp(1.5rem, 4vw, 3rem);
+  color: #aaa69a;
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.demo-signal-strip span,
+.demo-handoff-list span {
+  border-block-start: 1px solid rgba(133, 129, 116, 0.36);
+  padding-block-start: 0.65rem;
+}
+
+.demo-handoff-list {
+  margin-inline-start: auto;
 }
 
 .demo-stage--compact {
@@ -179,7 +207,24 @@ select {
   background:
     linear-gradient(135deg, rgba(146, 204, 181, 0.25), transparent 34%),
     linear-gradient(315deg, rgba(220, 89, 71, 0.28), transparent 34%),
-    #1b1d1a;
+    var(--folder-surface);
+}
+
+.demo-photo__grid {
+  position: absolute;
+  inset: 1.25rem 1.25rem auto auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(2.5rem, 5rem));
+  gap: 0.55rem;
+}
+
+.demo-photo__grid i {
+  display: block;
+  aspect-ratio: 1;
+  border: 1px solid rgba(246, 242, 232, 0.24);
+  background:
+    linear-gradient(135deg, rgba(246, 242, 232, 0.12), transparent),
+    rgba(18, 20, 18, 0.34);
 }
 
 .demo-photo span {
@@ -205,15 +250,6 @@ select {
   .demo-shell {
     width: min(100vw - 1rem, 32rem);
     padding-block-start: 1rem;
-  }
-
-  .demo-stage--split,
-  .demo-stage--right {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .demo-stage--right {
-    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .demo-dossier {

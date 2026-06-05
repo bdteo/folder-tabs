@@ -13,9 +13,44 @@
       "target": "components/ui/folder-tabs/FolderTabs.vue"
     },
     {
+      "path": "Folder.vue",
+      "type": "registry:ui",
+      "target": "components/ui/folder-tabs/Folder.vue"
+    },
+    {
+      "path": "FolderBinder.vue",
+      "type": "registry:ui",
+      "target": "components/ui/folder-tabs/FolderBinder.vue"
+    },
+    {
+      "path": "FolderAttachment.vue",
+      "type": "registry:ui",
+      "target": "components/ui/folder-tabs/FolderAttachment.vue"
+    },
+    {
+      "path": "FolderTabPanelStack.vue",
+      "type": "registry:ui",
+      "target": "components/ui/folder-tabs/FolderTabPanelStack.vue"
+    },
+    {
       "path": "folderTabs.ts",
       "type": "registry:lib",
       "target": "components/ui/folder-tabs/folderTabs.ts"
+    },
+    {
+      "path": "folderGeometry.ts",
+      "type": "registry:lib",
+      "target": "components/ui/folder-tabs/folderGeometry.ts"
+    },
+    {
+      "path": "useFolderPullMachine.ts",
+      "type": "registry:lib",
+      "target": "components/ui/folder-tabs/useFolderPullMachine.ts"
+    },
+    {
+      "path": "useFolderTabList.ts",
+      "type": "registry:lib",
+      "target": "components/ui/folder-tabs/useFolderTabList.ts"
     },
     {
       "path": "folder-tabs.css",
@@ -29,4 +64,3 @@
     }
   ]
 }
-

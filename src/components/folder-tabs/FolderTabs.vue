@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, type ComponentPublicInstance } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch, type ComponentPublicInstance } from 'vue';
 import {
   getFolderTabAccessibleLabel,
   getFolderTabCountLabel,
@@ -10,6 +10,7 @@ import {
   normalizeFolderTabEdge,
   normalizeFolderTabs,
   type FolderTabActivation,
+  type FolderTabAppearance,
   type FolderTabDensity,
   type FolderTabEdge,
   type FolderTabExpandOn,
@@ -28,6 +29,9 @@ const props = withDefaults(defineProps<{
   activation?: FolderTabActivation;
   expandOn?: FolderTabExpandOn;
   gravity?: FolderTabGravity;
+  appearance?: FolderTabAppearance;
+  activationMotionDuration?: number;
+  pulledKey?: FolderTabKey | null;
   ariaLabel: string;
   panelIdForTab?: ((tab: FolderTabItem) => string | undefined) | null;
 }>(), {
@@ -38,6 +42,9 @@ const props = withDefaults(defineProps<{
   activation: 'automatic',
   expandOn: 'hover',
   gravity: 'center',
+  appearance: 'rail',
+  activationMotionDuration: 420,
+  pulledKey: null,
   panelIdForTab: null,
 });
 
@@ -48,6 +55,9 @@ const emit = defineEmits<{
 
 const tabRefs = new Map<string, HTMLButtonElement>();
 const focusedKey = ref<string | null>(null);
+const grabbingKey = ref<string | null>(null);
+const recedingKey = ref<string | null>(null);
+let activationMotionTimer: ReturnType<typeof window.setTimeout> | null = null;
 
 const visibleTabs = computed(() => normalizeFolderTabs(props.tabs));
 const activeKey = computed(() => props.modelValue === null || props.modelValue === undefined ? null : String(props.modelValue));
@@ -70,6 +80,7 @@ const rootClasses = computed(() => [
   `folder-tabs--activation-${props.activation}`,
   `folder-tabs--expand-${props.expandOn}`,
   `folder-tabs--gravity-${props.gravity}`,
+  `folder-tabs--appearance-${props.appearance}`,
 ]);
 
 watch(activeKey, (key) => {
@@ -77,6 +88,12 @@ watch(activeKey, (key) => {
     focusedKey.value = key;
   }
 }, { immediate: true });
+
+onBeforeUnmount(() => {
+  if (activationMotionTimer !== null) {
+    window.clearTimeout(activationMotionTimer);
+  }
+});
 
 function setTabRef(key: FolderTabKey, element: Element | ComponentPublicInstance | null): void {
   const normalizedKey = String(key);
@@ -106,9 +123,26 @@ function activateTab(tab: FolderTabItem): void {
     return;
   }
 
+  startActivationMotion(tab.key);
   focusedKey.value = String(tab.key);
   emit('update:modelValue', tab.key);
   emit('activate', tab.key, tab);
+}
+
+function startActivationMotion(key: FolderTabKey): void {
+  const nextKey = String(key);
+
+  if (activationMotionTimer !== null) {
+    window.clearTimeout(activationMotionTimer);
+  }
+
+  grabbingKey.value = nextKey;
+  recedingKey.value = activeKey.value && activeKey.value !== nextKey ? activeKey.value : null;
+  activationMotionTimer = window.setTimeout(() => {
+    grabbingKey.value = null;
+    recedingKey.value = null;
+    activationMotionTimer = null;
+  }, props.activationMotionDuration);
 }
 
 function handleKeydown(event: KeyboardEvent, tab: FolderTabItem): void {
@@ -139,9 +173,27 @@ function isTabbable(tab: FolderTabItem): boolean {
   return !tab.disabled && String(tab.key) === tabbableKey.value;
 }
 
+function isGrabbing(tab: FolderTabItem): boolean {
+  return String(tab.key) === grabbingKey.value;
+}
+
+function isPulled(tab: FolderTabItem): boolean {
+  return props.pulledKey !== null
+    && props.pulledKey !== undefined
+    && String(tab.key) === String(props.pulledKey);
+}
+
+function isReceding(tab: FolderTabItem): boolean {
+  return String(tab.key) === recedingKey.value;
+}
+
 function tabStyle(tab: FolderTabItem, index: number): Record<string, string | number> {
   const labelLength = Array.from(getFolderTabDisplayLabel(tab)).length;
   const countLength = Array.from(getFolderTabCountLabel(tab)).length;
+  const activeIndex = visibleTabs.value.findIndex((candidate) => String(candidate.key) === activeKey.value);
+  const stackDistance = activeIndex === -1 ? index : Math.abs(index - activeIndex);
+  const stackOffset = Math.min(stackDistance, 8) * 0.2;
+  const stackHoverOffset = Math.max(stackOffset - 0.1, 0);
 
   return {
     '--folder-tab-index': index,
@@ -149,6 +201,10 @@ function tabStyle(tab: FolderTabItem, index: number): Record<string, string | nu
     '--folder-tab-label-size': `${Math.max(labelLength + 2, 7)}ch`,
     '--folder-tab-count-size': countLength > 0 ? `${countLength + 1}ch` : '0ch',
     '--folder-tab-lock-size': hasLimitedFolderTabTotal(tab) ? '1rem' : '0rem',
+    '--folder-tab-stack-left-offset': `-${stackOffset.toFixed(2)}rem`,
+    '--folder-tab-stack-left-hover-offset': `-${stackHoverOffset.toFixed(2)}rem`,
+    '--folder-tab-stack-right-offset': `${stackOffset.toFixed(2)}rem`,
+    '--folder-tab-stack-right-hover-offset': `${stackHoverOffset.toFixed(2)}rem`,
   };
 }
 
@@ -177,7 +233,13 @@ function tabAriaLabel(tab: FolderTabItem): string {
       :ref="(element) => setTabRef(tab.key, element)"
       type="button"
       class="folder-tabs__tab"
-      :class="{ 'is-active': isActive(tab), 'is-disabled': tab.disabled }"
+      :class="{
+        'is-active': isActive(tab),
+        'is-disabled': tab.disabled,
+        'is-grabbing': isGrabbing(tab),
+        'is-pulled': isPulled(tab),
+        'is-receding': isReceding(tab),
+      }"
       :style="tabStyle(tab, tabIndex)"
       role="tab"
       :aria-selected="isActive(tab)"
