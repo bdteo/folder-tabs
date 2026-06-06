@@ -101,7 +101,6 @@ function demoActiveKey(
 
 const horizontalActive = ref(demoActiveKey(caseTabs, 'activeTop', 'evidence'));
 const standaloneActive = ref(demoActiveKey(caseTabs, 'activeStandalone', 'strategy'));
-const standaloneSideActive = ref(demoActiveKey(caseTabs, 'activeStandaloneSide', 'review'));
 const verticalActive = ref(demoActiveKey(caseTabs, 'activeLeft', 'signals'));
 const compactActive = ref(demoActiveKey(compactTabs, 'activeBottom', 'photos'));
 const rightEdgeActive = ref(demoActiveKey(caseTabs, 'activeRight', 'intake'));
@@ -116,7 +115,6 @@ const cornerHoverKey = ref(demoParams.get('hoverCorner') ?? demoParams.get('hove
 
 const activeCase = computed(() => caseTabs.find((tab) => tab.key === horizontalActive.value));
 const activeStandalone = computed(() => caseTabs.find((tab) => tab.key === standaloneActive.value));
-const activeStandaloneSide = computed(() => caseTabs.find((tab) => tab.key === standaloneSideActive.value));
 const activeVertical = computed(() => caseTabs.find((tab) => tab.key === verticalActive.value));
 const activeCompact = computed(() => compactTabs.find((tab) => tab.key === compactActive.value));
 const activeChess = computed(() => chessTabs.find((tab) => tab.key === chessActive.value));
@@ -126,12 +124,51 @@ const activeCorner = computed(() => cornerTabs.find((tab) => tab.key === cornerA
 <template>
   <main class="demo-shell">
     <section class="demo-hero">
-      <p class="demo-kicker">Vue copy-in primitive</p>
-      <h1>FolderTabs</h1>
-      <p class="demo-lede">
-        Tactile index tabs with physical depth, orientation-aware labels,
-        roving focus, and compact resting states.
-      </p>
+      <div class="demo-hero__copy">
+        <p class="demo-kicker">Vue copy-in primitive</p>
+        <h1>FolderTabs</h1>
+        <p class="demo-lede">
+          Tactile index tabs with physical depth, orientation-aware labels,
+          roving focus, and compact resting states.
+        </p>
+        <div class="demo-hero__facts" aria-hidden="true">
+          <span>atomic folder pieces</span>
+          <span>four pull edges</span>
+          <span>copy-in ready</span>
+        </div>
+      </div>
+
+      <div class="demo-hero__preview">
+        <FolderAttachment
+          v-model="horizontalActive"
+          class="demo-stage demo-stage--top"
+          folder-class="demo-file demo-file--hero"
+          :tabs="caseTabs"
+          ariaLabel="Case file sections"
+          orientation="horizontal"
+          edge="top"
+          expand-on="hover"
+          depth="subtle"
+          tone="copper"
+          :layers="2"
+          :emulated-hover-key="topHoverKey"
+        >
+          <div>
+            <p class="demo-file__eyebrow">Top folder</p>
+            <h2>{{ activeCase?.label }}</h2>
+            <p>
+              A top tab pulls the selected folder upward from the binder,
+              then lets it settle back into the stack.
+            </p>
+          </div>
+          <div class="demo-file__tray" aria-hidden="true">
+            <span>exhibit log</span>
+            <span>14 docs</span>
+            <span>4 flagged</span>
+          </div>
+          <div class="demo-file__stamp">{{ activeCase?.count }}</div>
+        </FolderAttachment>
+      </div>
     </section>
 
     <section class="demo-rail-lab" aria-label="Standalone FolderTabs rail demos">
@@ -162,55 +199,19 @@ const activeCorner = computed(() => cornerTabs.find((tab) => tab.key === cornerA
           </div>
         </div>
 
-        <div class="demo-rail-side">
-          <FolderTabs
-            v-model="standaloneSideActive"
-            :tabs="caseTabs"
-            :pulled-key="standaloneSideActive"
-            ariaLabel="Standalone right folder rail"
-            orientation="vertical"
-            edge="right"
-            appearance="stack"
-            expand-on="hover"
-          />
-          <div class="demo-rail-readout demo-rail-readout--side" aria-live="polite">
-            <span>{{ activeStandaloneSide?.shortLabel }}</span>
-            <strong>{{ activeStandaloneSide?.count }} notes</strong>
-          </div>
+        <div class="demo-rail-specimen" aria-hidden="true">
+          <span>roving focus</span>
+          <span>measured labels</span>
+          <span>standalone tablist</span>
         </div>
       </div>
     </section>
 
     <section class="demo-board" aria-label="FolderTabs component demos">
-      <FolderAttachment
-        v-model="horizontalActive"
-        class="demo-stage demo-stage--top"
-        folder-class="demo-file"
-        :tabs="caseTabs"
-        ariaLabel="Case file sections"
-        orientation="horizontal"
-        edge="top"
-        expand-on="hover"
-        depth="subtle"
-        tone="copper"
-        :layers="2"
-        :emulated-hover-key="topHoverKey"
-      >
-        <div>
-          <p class="demo-file__eyebrow">Top folder</p>
-          <h2>{{ activeCase?.label }}</h2>
-          <p>
-            A top tab pulls the selected folder upward from the binder,
-            then lets it settle back into the stack.
-          </p>
-        </div>
-        <div class="demo-file__tray" aria-hidden="true">
-          <span>exhibit log</span>
-          <span>14 docs</span>
-          <span>4 flagged</span>
-        </div>
-        <div class="demo-file__stamp">{{ activeCase?.count }}</div>
-      </FolderAttachment>
+      <div class="demo-board__intro">
+        <p class="demo-kicker">Physical binder lab</p>
+        <h2>Every edge keeps the folder and tag together</h2>
+      </div>
 
       <FolderAttachment
         v-model="verticalActive"

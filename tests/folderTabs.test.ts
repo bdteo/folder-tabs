@@ -14,6 +14,7 @@ import {
 } from '../src/components/folder-tabs';
 import folderTabsCss from '../src/components/folder-tabs/folder-tabs.css?raw';
 import demoCss from '../src/demo/demo.css?raw';
+import appVueSource from '../src/App.vue?raw';
 import sourceBarrel from '../src/components/folder-tabs/index.ts?raw';
 import indexHtml from '../index.html?raw';
 import demoGeometryScript from '../scripts/check-demo-geometry.mjs?raw';
@@ -280,13 +281,12 @@ describe('FolderTabs', () => {
     expect(packageJson.files).toContain('src/vite-env.d.ts');
   });
 
-  it('keeps the mobile standalone side rail tall enough for an opened label', () => {
-    expect(demoCss).toContain([
-      '  .demo-rail-side .folder-tabs {',
-      '    max-block-size: min(22rem, 70vh);',
-      '  }',
-    ].join('\n'));
-    expect(demoCss).not.toContain('max-block-size: 12rem;');
+  it('keeps the standalone demo rail compact without a hover-expanding side specimen', () => {
+    expect(appVueSource).toContain('class="demo-rail-specimen"');
+    expect(appVueSource).not.toContain('activeStandaloneSide');
+    expect(appVueSource).not.toContain('class="demo-rail-side"');
+    expect(demoCss).toContain('.demo-rail-specimen {');
+    expect(demoCss).not.toContain('.demo-rail-side');
   });
 
   it('keeps demo prose from clipping on narrow screenshots', () => {
@@ -302,7 +302,7 @@ describe('FolderTabs', () => {
     ].join('\n'));
     expect(demoCss).toContain([
       '.demo-rail-copy p:last-child {',
-      '  max-inline-size: 26rem;',
+      '  max-inline-size: 30rem;',
       '  margin-block: 0.75rem 0;',
       '  color: #c6c0b5;',
       '  line-height: 1.55;',
