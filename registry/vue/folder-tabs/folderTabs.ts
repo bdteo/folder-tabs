@@ -19,6 +19,7 @@ export interface FolderTabItem {
   shortLabel?: string;
   srLabel?: string;
   edge?: FolderTabEdge;
+  gravity?: FolderTabGravity;
   tone?: FolderTone;
   icon?: Component | null;
   count?: string | number | null;

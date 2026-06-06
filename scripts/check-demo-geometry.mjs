@@ -19,16 +19,15 @@ const maxHoverMotionDelta = 0.75;
 const minHoverOutwardTug = 4;
 const qaScenarios = [
   {
-    name: 'hovered handles',
-    path: '?activeTop=evidence&activeBottom=photos&activeRight=signals'
-      + '&hoverTop=intake&hoverLeft=strategy&hoverBottom=plans&hoverRight=review'
-      + '&hoverChess=review&hoverCorner=review',
+    name: 'primary split and mixed-edge hover',
+    path: '?activePrimary=evidence&hoverPrimary=strategy'
+      + '&activeWorkbench=photos&hoverWorkbench=review&activeRail=signals',
     runClickPull: true,
   },
   {
     name: 'buried side icons',
-    path: '?activeTop=evidence&activeLeft=review&activeBottom=photos'
-      + '&activeRight=review&activeChess=review&activeCorner=review',
+    path: '?activePrimary=signals&hoverPrimary=intake'
+      + '&activeWorkbench=review&hoverWorkbench=exterior&activeRail=review',
     runClickPull: false,
   },
 ];
@@ -466,10 +465,8 @@ async function inspectDemoClickPull(client) {
     };
     const waitFrames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const cases = [
-      { rootSelector: '.demo-stage--top', targetLabel: 'Strategy' },
-      { rootSelector: '.demo-stage--split', targetLabel: 'Intake' },
-      { rootSelector: '.demo-stage--compact', targetLabel: 'Plans' },
-      { rootSelector: '.demo-stage--right', targetLabel: 'Review' },
+      { rootSelector: '.demo-stage--primary', targetLabel: 'Strategy' },
+      { rootSelector: '.demo-stage--workbench', targetLabel: 'Review' },
     ];
     const failures = [];
     const measurements = [];

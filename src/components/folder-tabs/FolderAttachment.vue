@@ -13,6 +13,7 @@ import {
   getFolderPullOffset,
   getFolderStackSlots,
   getFolderTabReachSize,
+  getFolderTuckRotation,
   type FolderTabMeasurement,
 } from './folderGeometry';
 import {
@@ -61,6 +62,7 @@ const props = withDefaults(defineProps<{
   depth?: FolderBinderDepth;
   layers?: number;
   tone?: FolderTone;
+  tuckedTilt?: boolean;
   pullDuration?: number;
   returnDuration?: number;
   emulatedHoverKey?: FolderTabKey | null;
@@ -78,6 +80,7 @@ const props = withDefaults(defineProps<{
   depth: 'raised',
   layers: 2,
   tone: 'slate',
+  tuckedTilt: false,
   pullDuration: 420,
   emulatedHoverKey: null,
   folderClass: '',
@@ -94,12 +97,15 @@ type MeasurementRefs = Partial<Record<MeasurementSlot, HTMLButtonElement>>;
 type FolderLayout = {
   activeIndex: number;
   edge: FolderTabEdge;
+  gravity: FolderTabGravity;
+  groupSize: number;
   index: number;
   orientation: FolderTabOrientation;
   slot: number;
 };
 
 const folderEdges: FolderTabEdge[] = ['top', 'right', 'bottom', 'left'];
+const folderGravities: FolderTabGravity[] = ['start', 'center', 'end'];
 const defaultReturnDurationRatio = 0.75;
 const attachmentId = useId();
 const tabList = useFolderTabList(props, {
@@ -202,6 +208,7 @@ const rootClasses = computed(() => [
   `folder-attachment--gravity-${normalizedGravity.value}`,
   {
     'folder-attachment--hover-emulated': emulatedHoverKey.value !== null,
+    'folder-attachment--tucked-tilt': props.tuckedTilt,
     'is-pulled': motion.isPulled.value,
   },
   rootEdgeClassFlags.value,
@@ -233,27 +240,42 @@ const folderLayouts = computed<Record<string, FolderLayout>>(() => {
       continue;
     }
 
-    const orientation = getFolderTabOrientationForEdge(edge);
-    const activeEdgeIndex = edgeTabs.findIndex(({ tab }) => tabList.isActive(tab));
-    const normalizedActiveIndex = Math.max(activeEdgeIndex, 0);
-    const slots = getFolderStackSlots({
-      activeIndex: normalizedActiveIndex,
-      appearance: normalizedAppearance.value,
-      density: normalizedDensity.value,
-      expandedIndexes: edgeTabs.flatMap(({ tab }, index) => (isTabExpanded(tab) ? [index] : [])),
-      measurements: edgeTabs.map(({ index }) => tabMeasurements.value[index] ?? folderFallbackTabMeasurement),
-      orientation,
-    });
+    for (const gravity of folderGravities) {
+      const groupTabs = edgeTabs.filter(({ tab }) => getTabGravity(tab) === gravity);
 
-    edgeTabs.forEach(({ tab }, index) => {
-      layouts[String(tab.key)] = {
+      if (groupTabs.length === 0) {
+        continue;
+      }
+
+      const orientation = getFolderTabOrientationForEdge(edge);
+      const activeGroupIndex = groupTabs.findIndex(({ tab }) => tabList.isActive(tab));
+      const normalizedActiveIndex = Math.max(activeGroupIndex, 0);
+      const expandedIndexes = groupTabs.flatMap(({ tab }, index) => (isTabExpanded(tab) ? [index] : []));
+      const groupMeasurements = groupTabs.map(({ index }) => (
+        tabMeasurements.value[index] ?? folderFallbackTabMeasurement
+      ));
+      const slots = getFolderStackSlots({
         activeIndex: normalizedActiveIndex,
-        edge,
-        index,
+        appearance: normalizedAppearance.value,
+        density: normalizedDensity.value,
+        expandedIndexes,
+        measurements: groupMeasurements,
         orientation,
-        slot: slots[index] ?? 0,
-      };
-    });
+      });
+      const groupSize = getFolderSlotGroupSize(slots, groupMeasurements, expandedIndexes, orientation);
+
+      groupTabs.forEach(({ tab }, index) => {
+        layouts[String(tab.key)] = {
+          activeIndex: normalizedActiveIndex,
+          edge,
+          gravity,
+          groupSize,
+          index,
+          orientation,
+          slot: slots[index] ?? 0,
+        };
+      });
+    }
   }
 
   return layouts;
@@ -504,6 +526,7 @@ function folderClasses(tab: FolderTabItem): Array<string | Record<string, boolea
     'folder-attachment__folder',
     `folder-attachment__folder--${layout.orientation}`,
     `folder-attachment__folder--edge-${layout.edge}`,
+    `folder-attachment__folder--gravity-${layout.gravity}`,
     {
       'is-active': tabList.isActive(tab),
       'is-disabled': isFolderTabDisabled(tab),
@@ -538,6 +561,7 @@ function folderStyle(tab: FolderTabItem, index: number): Record<string, string |
   const compactSize = getCompactSize(measurement, layout.orientation);
   const isActive = tabList.isActive(tab);
   const actualOffset = getFolderActualOffset(tab, isActive, restOffset, pullOffset);
+  const rotation = getFolderPieceRotation(tab, layout.edge, restingStackIndex, isActive);
   const tuckedDistance = isActive ? 0 : Math.max(Math.abs(restOffset.x), Math.abs(restOffset.y));
   const coverDistance = isActive ? 0 : getActiveFolderCoverDistance(layout.edge);
   const minimumVisibleGrabSize = getFolderMinimumVisibleGrabSize(layout.edge);
@@ -550,8 +574,10 @@ function folderStyle(tab: FolderTabItem, index: number): Record<string, string |
   return {
     '--folder-piece-index': index,
     '--folder-piece-slot': `${layout.slot.toFixed(2)}px`,
+    '--folder-tab-group-size': `${layout.groupSize.toFixed(2)}px`,
     '--folder-piece-x': `${actualOffset.x.toFixed(2)}px`,
     '--folder-piece-y': `${actualOffset.y.toFixed(2)}px`,
+    '--folder-piece-rotate': `${rotation.toFixed(2)}deg`,
     '--folder-piece-rest-x': `${restOffset.x.toFixed(2)}px`,
     '--folder-piece-rest-y': `${restOffset.y.toFixed(2)}px`,
     '--folder-tab-hover-x': `${hoverOffset.x.toFixed(2)}px`,
@@ -562,6 +588,26 @@ function folderStyle(tab: FolderTabItem, index: number): Record<string, string |
     '--folder-attached-tab-reach-size': `${reachSize.toFixed(2)}px`,
     '--folder-piece-z': zIndex,
   };
+}
+
+function getFolderPieceRotation(
+  tab: FolderTabItem,
+  edge: FolderTabEdge,
+  restingStackIndex: number,
+  isActive: boolean,
+): number {
+  if (
+    !props.tuckedTilt
+    || isActive
+    || motion.isSelectingKey(tab.key)
+    || motion.isPullingKey(tab.key)
+    || motion.isPulledKey(tab.key)
+    || motion.isHandoffKey(tab.key)
+  ) {
+    return 0;
+  }
+
+  return getFolderTuckRotation(edge, restingStackIndex, activeRestingStackIndex.value);
 }
 
 function getFolderActualOffset(
@@ -602,6 +648,8 @@ function getFolderLayout(tab: FolderTabItem): FolderLayout {
   return folderLayouts.value[String(tab.key)] ?? {
     activeIndex: activeIndex.value,
     edge: tabList.normalizedEdge.value,
+    gravity: getTabGravity(tab),
+    groupSize: 0,
     index: tabList.visibleTabs.value.findIndex((candidate) => String(candidate.key) === String(tab.key)),
     orientation: tabList.normalizedOrientation.value,
     slot: 0,
@@ -610,6 +658,33 @@ function getFolderLayout(tab: FolderTabItem): FolderLayout {
 
 function getTabEdge(tab: FolderTabItem): FolderTabEdge {
   return normalizeFolderTabEdge(tab.edge ?? props.edge, tabList.normalizedOrientation.value);
+}
+
+function getTabGravity(tab: FolderTabItem): FolderTabGravity {
+  if (tab.gravity !== undefined) {
+    return normalizeFolderTabGravity(tab.gravity);
+  }
+
+  const fallbackGravity = normalizeFolderTabGravity(props.gravity);
+  return fallbackGravity === 'center' ? 'start' : fallbackGravity;
+}
+
+function getFolderSlotGroupSize(
+  slots: readonly number[],
+  groupMeasurements: readonly FolderTabMeasurement[],
+  expandedIndexes: readonly number[],
+  orientation: FolderTabOrientation,
+): number {
+  const expandedIndexSet = new Set(expandedIndexes);
+
+  return groupMeasurements.reduce((size, measurement, index) => {
+    const compactSize = getCompactSize(measurement, orientation);
+    const tabSize = expandedIndexSet.has(index)
+      ? Math.max(measurement.openInlineSize, compactSize)
+      : compactSize;
+
+    return Math.max(size, (slots[index] ?? 0) + tabSize);
+  }, 0);
 }
 
 function getActiveFolderCoverDistance(edge: FolderTabEdge): number {

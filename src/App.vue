@@ -25,6 +25,10 @@ const Icons = {
     h('rect', { x: '3', y: '6', width: '18', height: '15', rx: '2' }),
     h('path', { d: 'M3 12h18' }),
   ]),
+  camera: icon('IconCamera', [
+    h('path', { d: 'M4 7h4l2-3h4l2 3h4v13H4V7Z' }),
+    h('circle', { cx: '12', cy: '13', r: '4' }),
+  ]),
   compass: icon('IconCompass', [
     h('circle', { cx: '12', cy: '12', r: '9' }),
     h('path', { d: 'm15 9-2 6-6 2 2-6 6-2Z' }),
@@ -33,6 +37,16 @@ const Icons = {
     h('path', { d: 'M4 19V5' }),
     h('path', { d: 'M4 19h17' }),
     h('path', { d: 'm8 15 4-5 4 3 4-7' }),
+  ]),
+  grid: icon('IconGrid', [
+    h('rect', { x: '4', y: '4', width: '7', height: '7' }),
+    h('rect', { x: '13', y: '4', width: '7', height: '7' }),
+    h('rect', { x: '4', y: '13', width: '7', height: '7' }),
+    h('rect', { x: '13', y: '13', width: '7', height: '7' }),
+  ]),
+  pin: icon('IconPin', [
+    h('path', { d: 'M12 21s7-5.6 7-11a7 7 0 0 0-14 0c0 5.4 7 11 7 11Z' }),
+    h('circle', { cx: '12', cy: '10', r: '2.5' }),
   ]),
   spark: icon('IconSpark', [
     h('path', { d: 'm12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z' }),
@@ -54,41 +68,107 @@ const caseTabs: FolderTabItem[] = [
   { key: 'review', label: 'Counsel review', shortLabel: 'Review', tone: 'slate', icon: Icons.note, count: 2 },
 ];
 
-const compactTabs: FolderTabItem[] = [
-  {
-    key: 'photos',
-    label: 'Object photos',
-    shortLabel: 'Photos',
-    tone: 'moss',
-    icon: Icons.archive,
-    count: 1,
-    totalCount: 15,
-    countLabel: '15',
-  },
-  { key: 'plans', label: 'Floor plans', shortLabel: 'Plans', tone: 'copper', icon: Icons.graph, count: 2 },
-  { key: 'maps', label: 'Maps and plans', shortLabel: 'Maps', tone: 'violet', icon: Icons.compass, count: 4 },
-];
-
-const chessTabs: FolderTabItem[] = caseTabs.map((tab, index) => ({
+const primaryTabs: FolderTabItem[] = caseTabs.map((tab, index) => ({
   ...tab,
-  edge: index % 2 === 0 ? 'left' : 'right',
+  edge: 'top',
+  gravity: index < 2 ? 'start' : 'end',
 }));
 
-const cornerTabs: FolderTabItem[] = [
-  { ...compactTabs[0], edge: 'bottom' },
-  { ...compactTabs[1], edge: 'right' },
-  { ...compactTabs[2], edge: 'bottom' },
-  { ...caseTabs[4], edge: 'right' },
+const workbenchTabs: FolderTabItem[] = [
+  {
+    key: 'photos',
+    label: 'Photo gallery',
+    shortLabel: 'Photos',
+    tone: 'teal',
+    edge: 'top',
+    gravity: 'start',
+    icon: Icons.camera,
+    count: 8,
+  },
+  {
+    key: 'plans',
+    label: 'Floor plans',
+    shortLabel: 'Plans',
+    tone: 'moss',
+    edge: 'top',
+    gravity: 'end',
+    icon: Icons.grid,
+    count: 2,
+  },
+  {
+    key: 'exterior',
+    label: 'Exterior photos',
+    shortLabel: 'Ext.',
+    tone: 'copper',
+    edge: 'left',
+    gravity: 'start',
+    icon: Icons.archive,
+    count: 4,
+  },
+  {
+    key: 'interior',
+    label: 'Interior rooms',
+    shortLabel: 'Int.',
+    tone: 'slate',
+    edge: 'left',
+    gravity: 'end',
+    icon: Icons.briefcase,
+    count: 5,
+  },
+  {
+    key: 'maps',
+    label: 'Maps',
+    shortLabel: 'Maps',
+    tone: 'violet',
+    edge: 'right',
+    gravity: 'start',
+    icon: Icons.pin,
+    count: 1,
+  },
+  {
+    key: 'review',
+    label: 'Review notes',
+    shortLabel: 'Review',
+    tone: 'moss',
+    edge: 'right',
+    gravity: 'end',
+    icon: Icons.note,
+    count: 2,
+  },
+  {
+    key: 'timeline',
+    label: 'Auction timeline',
+    shortLabel: 'Timeline',
+    tone: 'slate',
+    edge: 'bottom',
+    gravity: 'center',
+    icon: Icons.spark,
+    count: 3,
+  },
 ];
 
 const demoParams = new URLSearchParams(window.location.search);
 
+function getDemoParam(paramNames: string | string[]): string | null {
+  const names = Array.isArray(paramNames) ? paramNames : [paramNames];
+
+  for (const name of names) {
+    const value = demoParams.get(name);
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 function demoActiveKey(
   demoTabs: FolderTabItem[],
-  paramName: string,
+  paramNames: string | string[],
   fallbackKey: string,
 ): string {
-  const requestedKey = demoParams.get(paramName);
+  const requestedKey = getDemoParam(paramNames);
 
   if (!requestedKey) {
     return fallbackKey;
@@ -99,287 +179,208 @@ function demoActiveKey(
     : fallbackKey;
 }
 
-const horizontalActive = ref(demoActiveKey(caseTabs, 'activeTop', 'evidence'));
-const standaloneActive = ref(demoActiveKey(caseTabs, 'activeStandalone', 'strategy'));
-const verticalActive = ref(demoActiveKey(caseTabs, 'activeLeft', 'signals'));
-const compactActive = ref(demoActiveKey(compactTabs, 'activeBottom', 'photos'));
-const rightEdgeActive = ref(demoActiveKey(caseTabs, 'activeRight', 'intake'));
-const chessActive = ref(demoActiveKey(chessTabs, 'activeChess', 'strategy'));
-const cornerActive = ref(demoActiveKey(cornerTabs, 'activeCorner', 'photos'));
-const topHoverKey = ref(demoParams.get('hoverTop') ?? demoParams.get('hover'));
-const leftHoverKey = ref(demoParams.get('hoverLeft') ?? demoParams.get('hover'));
-const bottomHoverKey = ref(demoParams.get('hoverBottom') ?? demoParams.get('hover'));
-const rightHoverKey = ref(demoParams.get('hoverRight') ?? demoParams.get('hover'));
-const chessHoverKey = ref(demoParams.get('hoverChess') ?? demoParams.get('hover'));
-const cornerHoverKey = ref(demoParams.get('hoverCorner') ?? demoParams.get('hover'));
+function demoHoverKey(paramNames: string | string[]): string | null {
+  return getDemoParam(paramNames);
+}
 
-const activeCase = computed(() => caseTabs.find((tab) => tab.key === horizontalActive.value));
-const activeStandalone = computed(() => caseTabs.find((tab) => tab.key === standaloneActive.value));
-const activeVertical = computed(() => caseTabs.find((tab) => tab.key === verticalActive.value));
-const activeCompact = computed(() => compactTabs.find((tab) => tab.key === compactActive.value));
-const activeChess = computed(() => chessTabs.find((tab) => tab.key === chessActive.value));
-const activeCorner = computed(() => cornerTabs.find((tab) => tab.key === cornerActive.value));
+function formatCount(tab: FolderTabItem | null | undefined): string {
+  if (!tab) {
+    return '';
+  }
+
+  return String(tab.countLabel ?? tab.count ?? '');
+}
+
+const primaryActive = ref(demoActiveKey(primaryTabs, ['activePrimary', 'activeWrap', 'activeTop'], 'evidence'));
+const workbenchActive = ref(demoActiveKey(
+  workbenchTabs,
+  ['activeWorkbench', 'activeMixed', 'activeLeft', 'activeRight', 'activeBottom'],
+  'photos',
+));
+const railActive = ref(demoActiveKey(caseTabs, ['activeRail', 'activeStandalone'], 'strategy'));
+const primaryHoverKey = ref(demoHoverKey(['hoverPrimary', 'hoverWrap', 'hoverTop', 'hover']));
+const workbenchHoverKey = ref(demoHoverKey([
+  'hoverWorkbench',
+  'hoverMixed',
+  'hoverLeft',
+  'hoverRight',
+  'hoverBottom',
+  'hover',
+]));
+
+const activePrimary = computed(() => primaryTabs.find((tab) => String(tab.key) === primaryActive.value) ?? null);
+const activeWorkbench = computed(() => workbenchTabs.find((tab) => String(tab.key) === workbenchActive.value) ?? null);
+const activeRail = computed(() => caseTabs.find((tab) => String(tab.key) === railActive.value) ?? null);
+const primaryCount = computed(() => formatCount(activePrimary.value));
+const workbenchCount = computed(() => formatCount(activeWorkbench.value));
+const workbenchEdgeLabel = computed(() => {
+  const edge = activeWorkbench.value?.edge ?? 'top';
+
+  return `${edge} edge`;
+});
+const workbenchCaption = computed(() => {
+  switch (activeWorkbench.value?.edge) {
+    case 'left':
+      return 'Left-side folders behave like a pulled-out side index while the media stays inside the same binder.';
+    case 'right':
+      return 'Right-side folders mirror the same physical rules without needing a second component.';
+    case 'bottom':
+      return 'Bottom folders tuck under the sheet and keep the thumbnail tray visually attached.';
+    default:
+      return 'Top folders can split into start and end groups while sharing one continuous binder surface.';
+  }
+});
 </script>
 
 <template>
   <main class="demo-shell">
-    <section class="demo-hero">
-      <div class="demo-hero__copy">
-        <p class="demo-kicker">Vue copy-in primitive</p>
+    <section id="primary-binder-demo" class="demo-showcase" aria-label="FolderTabs primary binder demo">
+      <div class="demo-showcase__copy">
+        <p class="demo-kicker">Vue physical primitive</p>
         <h1>FolderTabs</h1>
         <p class="demo-lede">
-          Tactile index tabs with physical depth, orientation-aware labels,
-          roving focus, and compact resting states.
+          Atomic folder pieces with attached handles, remembered stack depth,
+          and direction-aware pull motion.
         </p>
-        <div class="demo-hero__facts" aria-hidden="true">
-          <span>atomic folder pieces</span>
-          <span>four pull edges</span>
-          <span>copy-in ready</span>
+        <div class="demo-proofline" aria-hidden="true">
+          <span>split lanes</span>
+          <span>tucked tilt</span>
+          <span>roving focus</span>
         </div>
       </div>
 
-      <div class="demo-hero__preview">
+      <FolderAttachment
+        v-model="primaryActive"
+        class="demo-stage demo-stage--primary"
+        folder-class="demo-folder demo-folder--primary"
+        :tabs="primaryTabs"
+        ariaLabel="Case binder sections"
+        orientation="horizontal"
+        edge="top"
+        appearance="stack"
+        expand-on="hover"
+        depth="deep"
+        tone="slate"
+        tucked-tilt
+        :layers="2"
+        :emulated-hover-key="primaryHoverKey"
+      >
+        <div class="demo-folder__main">
+          <p class="demo-file__eyebrow">same top edge</p>
+          <h2>{{ activePrimary?.label }}</h2>
+          <p>
+            Start and end tab groups share one physical binder edge, so the
+            empty space between groups reads as real desk space instead of a
+            layout gap.
+          </p>
+        </div>
+
+        <div class="demo-folder__stamp" aria-hidden="true">
+          {{ primaryCount }}
+        </div>
+
+        <dl class="demo-folder__ledger">
+          <div>
+            <dt>active folder</dt>
+            <dd>{{ activePrimary?.shortLabel }}</dd>
+          </div>
+          <div>
+            <dt>pull model</dt>
+            <dd>handle first</dd>
+          </div>
+          <div>
+            <dt>stack order</dt>
+            <dd>remembered</dd>
+          </div>
+        </dl>
+      </FolderAttachment>
+    </section>
+
+    <section id="edge-workbench-demo" class="demo-workbench" aria-label="FolderTabs edge workbench demo">
+      <div class="demo-section-copy">
+        <p class="demo-kicker">one binder, every edge</p>
+        <h2>Fewer demos, more behavior</h2>
+        <p>
+          The workbench below replaces the old edge-by-edge gallery: top,
+          left, right, and bottom tabs are all first-class folders inside one
+          stack.
+        </p>
+      </div>
+
+      <div class="demo-workbench__layout">
         <FolderAttachment
-          v-model="horizontalActive"
-          class="demo-stage demo-stage--top"
-          folder-class="demo-file demo-file--hero"
-          :tabs="caseTabs"
-          ariaLabel="Case file sections"
+          v-model="workbenchActive"
+          class="demo-stage demo-stage--workbench"
+          folder-class="demo-folder demo-folder--media"
+          :tabs="workbenchTabs"
+          ariaLabel="Four-edge media binder sections"
           orientation="horizontal"
           edge="top"
+          appearance="stack"
           expand-on="hover"
-          depth="subtle"
-          tone="copper"
+          depth="deep"
+          tone="teal"
+          tucked-tilt
           :layers="2"
-          :emulated-hover-key="topHoverKey"
+          :emulated-hover-key="workbenchHoverKey"
         >
-          <div>
-            <p class="demo-file__eyebrow">Top folder</p>
-            <h2>{{ activeCase?.label }}</h2>
-            <p>
-              A top tab pulls the selected folder upward from the binder,
-              then lets it settle back into the stack.
-            </p>
+          <div class="demo-media">
+            <div class="demo-media__copy">
+              <p class="demo-file__eyebrow">{{ workbenchEdgeLabel }}</p>
+              <h2>{{ activeWorkbench?.shortLabel ?? activeWorkbench?.label }}</h2>
+              <p>{{ workbenchCaption }}</p>
+            </div>
+
+            <div class="demo-media__preview" aria-hidden="true">
+              <span class="demo-media__shot demo-media__shot--large">gallery</span>
+              <span class="demo-media__shot">plan</span>
+              <span class="demo-media__shot">map</span>
+              <span class="demo-media__shot">note</span>
+            </div>
+
+            <div class="demo-media__meta" aria-hidden="true">
+              <span>{{ workbenchCount }} items</span>
+              <span>{{ activeWorkbench?.shortLabel }}</span>
+              <span>single tablist</span>
+            </div>
           </div>
-          <div class="demo-file__tray" aria-hidden="true">
-            <span>exhibit log</span>
-            <span>14 docs</span>
-            <span>4 flagged</span>
-          </div>
-          <div class="demo-file__stamp">{{ activeCase?.count }}</div>
         </FolderAttachment>
-      </div>
-    </section>
 
-    <section class="demo-rail-lab" aria-label="Standalone FolderTabs rail demos">
-      <div class="demo-rail-copy">
-        <p class="demo-kicker">Standalone rail</p>
-        <h2>Measured tab geometry</h2>
-        <p>
-          The rail-only component keeps the accessible tablist behavior while
-          sizing opened labels from the rendered text itself.
-        </p>
-      </div>
-
-      <div class="demo-rail-samples">
-        <div class="demo-rail-track">
-          <FolderTabs
-            v-model="standaloneActive"
-            :tabs="caseTabs"
-            :pulled-key="standaloneActive"
-            ariaLabel="Standalone horizontal folder rail"
-            orientation="horizontal"
-            edge="top"
-            appearance="stack"
-            expand-on="hover"
-          />
-          <div class="demo-rail-readout" aria-live="polite">
-            <span>{{ activeStandalone?.shortLabel }}</span>
-            <strong>{{ activeStandalone?.count }} notes</strong>
-          </div>
-        </div>
-
-        <div class="demo-rail-specimen" aria-hidden="true">
-          <span>roving focus</span>
-          <span>measured labels</span>
-          <span>standalone tablist</span>
+        <div class="demo-workbench__notes" aria-hidden="true">
+          <span>hover moves the handle</span>
+          <span>click pulls the folder</span>
+          <span>selected folder stays frontmost</span>
+          <span>inactive side icons stay reachable</span>
         </div>
       </div>
     </section>
 
-    <section class="demo-board" aria-label="FolderTabs component demos">
-      <div class="demo-board__intro">
-        <p class="demo-kicker">Physical binder lab</p>
-        <h2>Every edge keeps the folder and tag together</h2>
-      </div>
-
-      <FolderAttachment
-        v-model="verticalActive"
-        class="demo-stage demo-stage--split"
-        folder-class="demo-dossier demo-dossier--signals"
-        :tabs="caseTabs"
-        ariaLabel="Vertical case file sections"
-        orientation="vertical"
-        edge="left"
-        gravity="center"
-        appearance="stack"
-        expand-on="hover"
-        depth="deep"
-        tone="teal"
-        :layers="2"
-        :emulated-hover-key="leftHoverKey"
-      >
-        <p class="demo-file__eyebrow">Left folder</p>
-        <h2>{{ activeVertical?.shortLabel }}</h2>
+    <section class="demo-rail-section" aria-label="Standalone FolderTabs rail demo">
+      <div class="demo-section-copy demo-section-copy--rail">
+        <p class="demo-kicker">standalone rail</p>
+        <h2>Use the tablist without the binder</h2>
         <p>
-          A left tab pulls the whole folder left, so the stack direction
-          and motion direction tell the same story.
-        </p>
-        <div class="demo-signal-strip" aria-hidden="true">
-          <span>match confidence 87%</span>
-          <span>2 unresolved notes</span>
-          <span>last touched today</span>
-        </div>
-      </FolderAttachment>
-
-      <FolderAttachment
-        v-model="compactActive"
-        class="demo-stage demo-stage--compact"
-        folder-class="demo-photo"
-        :tabs="compactTabs"
-        ariaLabel="Media tabs"
-        orientation="horizontal"
-        edge="bottom"
-        expand-on="active"
-        depth="raised"
-        tone="moss"
-        :layers="1"
-        :emulated-hover-key="bottomHoverKey"
-      >
-        <div class="demo-photo__copy">
-          <p class="demo-file__eyebrow">Bottom folder</p>
-          <h2>{{ activeCompact?.shortLabel }} contact sheet</h2>
-          <p>
-            Exterior references, floor-plan scraps, and map captures collected
-            into one quick-review media sleeve.
-          </p>
-        </div>
-        <div class="demo-photo__contact-sheet" aria-hidden="true">
-          <i class="demo-photo__shot demo-photo__shot--large"><span>front</span></i>
-          <i class="demo-photo__shot"><span>yard</span></i>
-          <i class="demo-photo__shot"><span>entry</span></i>
-          <i class="demo-photo__shot"><span>roof</span></i>
-          <i class="demo-photo__shot demo-photo__shot--wide"><span>street</span></i>
-        </div>
-        <div class="demo-photo__meta" aria-hidden="true">
-          <span>{{ activeCompact?.countLabel ?? activeCompact?.count }} selected</span>
-          <span>3 marked for review</span>
-        </div>
-      </FolderAttachment>
-
-      <FolderAttachment
-        v-model="rightEdgeActive"
-        class="demo-stage demo-stage--right"
-        folder-class="demo-dossier demo-dossier--right demo-dossier--handoff"
-        :tabs="caseTabs"
-        ariaLabel="Right edge sections"
-        orientation="vertical"
-        edge="right"
-        appearance="stack"
-        expand-on="focus"
-        activation="manual"
-        depth="deep"
-        tone="violet"
-        :layers="2"
-        :emulated-hover-key="rightHoverKey"
-      >
-        <template #icon="{ active }">
-          <component :is="active ? Icons.spark : Icons.note" />
-        </template>
-
-        <p class="demo-file__eyebrow">Right folder</p>
-        <h2>Mirrored direction</h2>
-        <p>
-          A right tab pulls the selected folder right, matching the side
-          stack instead of drifting diagonally.
-        </p>
-        <div class="demo-handoff-list" aria-hidden="true">
-          <span>owner review</span>
-          <span>stack mirrors right</span>
-          <span>manual focus mode</span>
-        </div>
-      </FolderAttachment>
-    </section>
-
-    <section class="demo-combo-board" aria-label="Mixed edge FolderTabs demos">
-      <div class="demo-combo-copy">
-        <p class="demo-kicker">Mixed edge binder</p>
-        <h2>Chessboard tab indexes</h2>
-        <p>
-          One binder can assign each folder to its own edge, so alternating
-          left/right or bottom/right tags still pull their matching folder as
-          one piece.
+          The lower-level rail keeps the same measured labels, keyboard model,
+          and active state without rendering folder panels.
         </p>
       </div>
 
-      <FolderAttachment
-        v-model="chessActive"
-        class="demo-stage demo-stage--chess"
-        folder-class="demo-dossier demo-dossier--chess"
-        :tabs="chessTabs"
-        ariaLabel="Chessboard case file sections"
-        orientation="vertical"
-        edge="left"
-        appearance="stack"
-        expand-on="hover"
-        depth="deep"
-        tone="teal"
-        :layers="2"
-        :emulated-hover-key="chessHoverKey"
-      >
-        <p class="demo-file__eyebrow">Left plus right</p>
-        <h2>{{ activeChess?.shortLabel }}</h2>
-        <p>
-          Alternating side tabs give the binder a physical index pattern
-          without splitting the folder stack into separate components.
-        </p>
-        <div class="demo-signal-strip" aria-hidden="true">
-          <span>{{ activeChess?.count }} active notes</span>
-          <span>mirrored side index</span>
-          <span>single tablist</span>
+      <div class="demo-rail-stage">
+        <FolderTabs
+          v-model="railActive"
+          :tabs="caseTabs"
+          :pulled-key="railActive"
+          ariaLabel="Standalone folder rail"
+          orientation="horizontal"
+          edge="top"
+          appearance="stack"
+          expand-on="hover"
+        />
+        <div class="demo-rail-readout" aria-live="polite">
+          <span>{{ activeRail?.shortLabel }}</span>
+          <strong>{{ activeRail?.count }} notes</strong>
         </div>
-      </FolderAttachment>
-
-      <FolderAttachment
-        v-model="cornerActive"
-        class="demo-stage demo-stage--corner"
-        folder-class="demo-photo demo-photo--corner"
-        :tabs="cornerTabs"
-        ariaLabel="Corner media file sections"
-        orientation="horizontal"
-        edge="bottom"
-        appearance="stack"
-        expand-on="hover"
-        depth="raised"
-        tone="moss"
-        :layers="1"
-        :emulated-hover-key="cornerHoverKey"
-      >
-        <div class="demo-photo__copy">
-          <p class="demo-file__eyebrow">Bottom plus right</p>
-          <h2>{{ activeCorner?.shortLabel }} corner file</h2>
-          <p>
-            Bottom tags and right-side tags share the same physical binder
-            while keeping their own edge direction.
-          </p>
-        </div>
-        <div class="demo-corner-grid" aria-hidden="true">
-          <span>survey</span>
-          <span>photos</span>
-          <span>plans</span>
-          <span>review</span>
-        </div>
-      </FolderAttachment>
+      </div>
     </section>
   </main>
 </template>

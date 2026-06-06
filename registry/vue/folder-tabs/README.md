@@ -30,6 +30,10 @@ Set `tone` on individual `FolderTabItem` objects when a stack should show differ
 
 Set `edge` on individual `FolderTabItem` objects when one attached binder should mix tab edges, such as alternating left/right tabs or a bottom/right corner index. The stack-level `edge` remains the fallback.
 
+Set `gravity` on individual `FolderTabItem` objects when one physical edge should split into separate slot lanes, such as top tabs grouped on the left and right sides of the same folder. `start` and `end` groups get independent measured slots while sharing the same pull direction.
+
+Use `tuckedTilt` on `FolderAttachment` when tucked/background folders should get a small mirrored rotation, like files pushed back into a real binder. Active and pulled folders stay square.
+
 Hover behaves like touching or listing through a real folder tab: only the handle tugs toward the tab edge, while clicking pulls the whole folder. Use `emulatedHoverKey` only as a visual QA hook. It applies BEM hover-emulation classes and the same handle tug and displacement geometry as real hover, while label/slot expansion still follows `expandOn`. That makes overlap bugs easier to reproduce without holding the pointer over a moving tab.
 
 Use `appearance="stack"` on vertical tabs when the side rail should read like a physical cascade of folder dividers.

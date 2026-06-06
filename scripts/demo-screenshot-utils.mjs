@@ -7,9 +7,9 @@ import {
   waitForDemoFrame,
 } from './demo-cdp-utils.mjs';
 
-const physicalStackPath = '?activeTop=evidence&activeBottom=photos&activeRight=signals'
-  + '&hoverTop=intake&hoverLeft=strategy&hoverBottom=plans&hoverRight=review'
-  + '&hoverChess=review&hoverCorner=review';
+const physicalStackPath = '?activePrimary=evidence&hoverPrimary=strategy'
+  + '&activeWorkbench=photos&hoverWorkbench=review&activeRail=signals';
+const screenshotMotionSettleMs = 560;
 
 export const demoScreenshotSpecs = [
   {
@@ -32,7 +32,7 @@ export const demoScreenshotSpecs = [
     name: 'desktop attached stacks',
     outputName: 'demo-attached-desktop.png',
     pathAndQuery: physicalStackPath,
-    scrollSelector: '.demo-stage--split',
+    scrollSelector: '.demo-workbench',
     width: 1440,
   },
   {
@@ -41,7 +41,7 @@ export const demoScreenshotSpecs = [
     name: 'mobile attached stacks',
     outputName: 'demo-attached-mobile.png',
     pathAndQuery: physicalStackPath,
-    scrollSelector: '.demo-stage--split',
+    scrollSelector: '.demo-workbench',
     width: 390,
   },
 ];
@@ -84,13 +84,14 @@ async function captureScreenshot(client, baseUrl, outputDir, screenshot) {
     pathAndQuery: screenshot.pathAndQuery ?? '',
     width: screenshot.width,
   });
+  await waitForScreenshotSettle(client);
 
   if (screenshot.scrollSelector) {
     await scrollToScreenshotTarget(client, screenshot);
-    await waitForDemoFrame(client);
+    await waitForScreenshotSettle(client);
   } else if (Number.isFinite(screenshot.scrollY) && screenshot.scrollY > 0) {
     await evaluateInPage(client, `window.scrollTo(0, ${Math.round(screenshot.scrollY)})`);
-    await waitForDemoFrame(client);
+    await waitForScreenshotSettle(client);
   }
 
   const { data } = await client.send('Page.captureScreenshot', {
@@ -100,6 +101,11 @@ async function captureScreenshot(client, baseUrl, outputDir, screenshot) {
   });
 
   await writeFile(path.join(outputDir, screenshot.outputName), Buffer.from(data, 'base64'));
+}
+
+async function waitForScreenshotSettle(client) {
+  await evaluateInPage(client, `new Promise((resolve) => setTimeout(resolve, ${screenshotMotionSettleMs}))`);
+  await waitForDemoFrame(client);
 }
 
 async function scrollToScreenshotTarget(client, screenshot) {

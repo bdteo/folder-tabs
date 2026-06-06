@@ -19,6 +19,7 @@ import {
   getFolderTabOrientationForEdge,
   getFolderTabReachSize,
   getFolderTabTotalCountLabel,
+  getFolderTuckRotation,
   getFolderVisibleGrabSize,
   hasFolderTabCount,
   hasFolderTabIcon,
@@ -286,6 +287,15 @@ describe('folder tab helpers', () => {
     expect(getFolderPieceTuckOffset('left', 0, 2, 'dense')).toEqual({ x: 17, y: 0 });
   });
 
+  it('rotates tucked folders with small mirrored angles', () => {
+    expect(getFolderTuckRotation('top', 2, 2)).toBe(0);
+    expect(getFolderTuckRotation('top', 0, 3)).toBe(-0.96);
+    expect(getFolderTuckRotation('top', 1, 3)).toBe(0.78);
+    expect(getFolderTuckRotation('right', 0, 3)).toBe(0.96);
+    expect(getFolderTuckRotation('bottom', 1, 3)).toBe(-0.78);
+    expect(Math.abs(getFolderTuckRotation('left', 99, 0))).toBeLessThanOrEqual(1.35);
+  });
+
   it('extends buried tab handles enough to preserve the compact handle lane', () => {
     expect(getFolderTabReachSize(44, 0)).toBe(44);
     expect(getFolderTabReachSize(44, 20)).toBe(64);
@@ -303,10 +313,10 @@ describe('folder tab helpers', () => {
     expect(getFolderMinimumGrabSize(Number.NaN)).toBe(52);
     expect(getFolderMinimumVisibleGrabSize('top')).toBe(52);
     expect(getFolderMinimumVisibleGrabSize('bottom')).toBe(52);
-    expect(getFolderMinimumVisibleGrabSize('left')).toBe(112);
-    expect(getFolderMinimumVisibleGrabSize('right')).toBe(112);
+    expect(getFolderMinimumVisibleGrabSize('left')).toBe(120);
+    expect(getFolderMinimumVisibleGrabSize('right')).toBe(120);
     expect(getFolderTabReachSize(44, 27, getFolderMinimumGrabSize(44), 8)).toBe(87);
-    expect(getFolderTabReachSize(44, 27, getFolderMinimumGrabSize(44, getFolderMinimumVisibleGrabSize('right')), 8)).toBe(147);
+    expect(getFolderTabReachSize(44, 27, getFolderMinimumGrabSize(44, getFolderMinimumVisibleGrabSize('right')), 8)).toBe(155);
   });
 
   it('keeps the grab lane visible after tucked depth and active folder cover are removed', () => {
@@ -329,7 +339,7 @@ describe('folder tab helpers', () => {
         .toBe(minimumGrabSize);
     }
 
-    expect(getFolderVisibleGrabSize(147, 27, activeCoverDistance)).toBe(112);
+    expect(getFolderVisibleGrabSize(155, 27, activeCoverDistance)).toBe(120);
     expect(getFolderVisibleGrabSize(87, 27, activeCoverDistance)).toBe(52);
   });
 

@@ -139,7 +139,7 @@ describe('FolderTabs', () => {
     expect(demoScreenshotUtilsScript).toContain('export const demoScreenshotSpecs = [');
     expect(demoScreenshotUtilsScript).toContain('demo-attached-desktop.png');
     expect(demoScreenshotUtilsScript).toContain('demo-attached-mobile.png');
-    expect(demoScreenshotUtilsScript).toContain("scrollSelector: '.demo-stage--split'");
+    expect(demoScreenshotUtilsScript).toContain("scrollSelector: '.demo-workbench'");
     expect(demoScreenshotUtilsScript).toContain('async function scrollToScreenshotTarget');
     expect(demoScreenshotUtilsScript).toContain('pathAndQuery: physicalStackPath');
     expect(demoScreenshotUtilsScript).toContain('window.scrollTo(0,');
@@ -149,10 +149,8 @@ describe('FolderTabs', () => {
     expect(demoGeometryScript).toContain('function assertNoInteractionFailures');
     expect(demoGeometryScript).toContain('async function inspectDemoClickPull');
     expect(demoGeometryScript).toContain('Demo click-pull passed');
-    expect(demoGeometryScript).toContain("rootSelector: '.demo-stage--top'");
-    expect(demoGeometryScript).toContain("rootSelector: '.demo-stage--split'");
-    expect(demoGeometryScript).toContain("rootSelector: '.demo-stage--compact'");
-    expect(demoGeometryScript).toContain("rootSelector: '.demo-stage--right'");
+    expect(demoGeometryScript).toContain("rootSelector: '.demo-stage--primary'");
+    expect(demoGeometryScript).toContain("rootSelector: '.demo-stage--workbench'");
     expect(demoGeometryScript).toContain('function assertNoConsoleFailures');
     expect(demoGeometryScript).toContain('function createConsoleErrorCollector');
     expect(demoGeometryScript).toContain("client.on('Runtime.consoleAPICalled'");
@@ -281,41 +279,52 @@ describe('FolderTabs', () => {
     expect(packageJson.files).toContain('src/vite-env.d.ts');
   });
 
-  it('keeps the standalone demo rail compact without a hover-expanding side specimen', () => {
-    expect(appVueSource).toContain('class="demo-rail-specimen"');
+  it('keeps the consolidated demo focused on three component exhibits', () => {
+    expect(appVueSource).toContain('class="demo-stage demo-stage--primary"');
+    expect(appVueSource).toContain('class="demo-stage demo-stage--workbench"');
+    expect(appVueSource).toContain('class="demo-rail-stage"');
     expect(appVueSource).not.toContain('activeStandaloneSide');
+    expect(appVueSource).not.toContain('class="demo-rail-specimen"');
     expect(appVueSource).not.toContain('class="demo-rail-side"');
-    expect(demoCss).toContain('.demo-rail-specimen {');
+    expect(demoCss).toContain('.demo-rail-stage {');
+    expect(demoCss).not.toContain('.demo-rail-specimen');
     expect(demoCss).not.toContain('.demo-rail-side');
+    expect(demoCss).not.toContain('.demo-stage--split');
+    expect(demoCss).not.toContain('.demo-stage--compact');
+    expect(demoCss).not.toContain('.demo-stage--right');
   });
 
   it('keeps demo prose from clipping on narrow screenshots', () => {
     expect(demoCss).toContain([
       '.demo-lede {',
-      '  max-inline-size: 40rem;',
-      '  margin: 0;',
-      '  color: #c6c0b5;',
-      '  font-size: 1.2rem;',
-      '  line-height: 1.55;',
-      '  overflow-wrap: anywhere;',
-      '}',
-    ].join('\n'));
-    expect(demoCss).toContain([
-      '.demo-rail-copy p:last-child {',
-      '  max-inline-size: 30rem;',
-      '  margin-block: 0.75rem 0;',
-      '  color: #c6c0b5;',
-      '  line-height: 1.55;',
-      '  overflow-wrap: anywhere;',
-      '}',
-    ].join('\n'));
-    expect(demoCss).toContain([
-      '.demo-file p,',
-      '.demo-dossier p {',
       '  max-inline-size: 34rem;',
-      '  color: #c7c2b6;',
-      '  line-height: 1.65;',
+      '  margin: 0;',
+      '  color: #cac3b6;',
+      '  font-size: clamp(1.05rem, 1.6vw, 1.32rem);',
+      '  line-height: 1.55;',
       '  overflow-wrap: anywhere;',
+      '}',
+    ].join('\n'));
+    expect(demoCss).toContain([
+      '.demo-section-copy p:last-child {',
+      '  max-inline-size: 43rem;',
+      '  margin-block: 0.9rem 0;',
+      '  font-size: 1.08rem;',
+      '}',
+    ].join('\n'));
+    expect(demoCss).toContain([
+      '.demo-folder p,',
+      '.demo-section-copy p {',
+      '  color: #c9c2b6;',
+      '  line-height: 1.6;',
+      '  overflow-wrap: anywhere;',
+      '}',
+    ].join('\n'));
+    expect(demoCss).toContain([
+      '.demo-media__copy p {',
+      '  max-inline-size: 33rem;',
+      '  margin-block: 1rem 0;',
+      '  font-size: clamp(0.98rem, 1.3vw, 1.12rem);',
       '}',
     ].join('\n'));
   });
@@ -354,7 +363,8 @@ describe('FolderTabs', () => {
   it('renders folder position from component-owned physical offset variables', () => {
     expect(folderTabsCss).toContain('--folder-piece-x: 0px;');
     expect(folderTabsCss).toContain('--folder-piece-y: 0px;');
-    expect(folderTabsCss).toContain('transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px);');
+    expect(folderTabsCss).toContain('--folder-piece-rotate: 0deg;');
+    expect(folderTabsCss).toContain('transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));');
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-rest-x), var(--folder-piece-rest-y), 0px);');
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-pull-x), var(--folder-piece-pull-y), 0px);');
   });
@@ -2901,6 +2911,97 @@ describe('FolderTabs', () => {
     expect(wrapper.find('.folder-attachment__folder.is-active .folder-attachment__content').text()).toBe('Floor plans');
   });
 
+  it('supports start and end tab groups on the same attached edge', async () => {
+    const wraparoundTabs: FolderTabItem[] = [
+      { ...tabs[0], edge: 'top', gravity: 'start' },
+      { ...tabs[1], edge: 'top', gravity: 'start' },
+      { ...tabs[2], disabled: false, edge: 'top', gravity: 'end' },
+      { ...tabs[3], edge: 'top', gravity: 'end' },
+    ];
+
+    const wrapper = mount(FolderAttachment, {
+      props: {
+        tabs: wraparoundTabs,
+        modelValue: 'photos',
+        ariaLabel: 'Wraparound media folders',
+        orientation: 'horizontal',
+        edge: 'top',
+        appearance: 'stack',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    await nextTick();
+
+    const folders = wrapper.findAll('.folder-attachment__folder');
+
+    expect(wrapper.classes()).not.toContain('folder-attachment--mixed-edge');
+    expect(wrapper.classes()).toContain('folder-attachment--has-edge-top');
+    expect(wrapper.classes()).toContain('folder-attachment--active-edge-top');
+    expect(wrapper.find('.folder-binder').classes()).toContain('folder-binder--edge-top');
+    expect(wrapper.find('.folder-binder').classes()).toContain('folder-binder--horizontal');
+    expect(wrapper.find('.folder-attachment__stack').attributes('aria-orientation')).toBe('horizontal');
+    expect(folders[0].classes()).toContain('folder-attachment__folder--edge-top');
+    expect(folders[0].classes()).toContain('folder-attachment__folder--horizontal');
+    expect(folders[0].classes()).toContain('folder-attachment__folder--gravity-start');
+    expect(folders[1].classes()).toContain('folder-attachment__folder--gravity-start');
+    expect(folders[2].classes()).toContain('folder-attachment__folder--edge-top');
+    expect(folders[2].classes()).toContain('folder-attachment__folder--horizontal');
+    expect(folders[2].classes()).toContain('folder-attachment__folder--gravity-end');
+    expect(folders[3].classes()).toContain('folder-attachment__folder--gravity-end');
+    expect(folders[0].attributes('style')).toContain('--folder-piece-slot: 0.00px');
+    expect(folders[2].attributes('style')).toContain('--folder-piece-slot: 0.00px');
+    expect(wrapper.find('.folder-attachment__folder.is-active .folder-attachment__content').text()).toBe('Object photos');
+
+    await wrapper.setProps({ modelValue: 'docs' });
+    await nextTick();
+
+    expect(wrapper.classes()).toContain('folder-attachment--active-edge-top');
+    expect(wrapper.find('.folder-binder').classes()).toContain('folder-binder--edge-top');
+    expect(wrapper.find('.folder-binder').classes()).toContain('folder-binder--horizontal');
+    expect(wrapper.find('.folder-attachment__folder.is-active').classes()).toContain('folder-attachment__folder--edge-top');
+    expect(wrapper.find('.folder-attachment__folder.is-active').classes()).toContain('folder-attachment__folder--gravity-end');
+    expect(wrapper.find('.folder-attachment__folder.is-active .folder-attachment__content').text()).toBe('Documents');
+    expect(wrapper.find('.folder-attachment__folder.is-active').attributes('style')).toContain('--folder-piece-z: 300');
+  });
+
+  it('keeps tucked folder rotation opt-in', async () => {
+    const squareWrapper = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'plans',
+        ariaLabel: 'Square folders',
+        appearance: 'stack',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+    const tiltedWrapper = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'plans',
+        ariaLabel: 'Tilted folders',
+        appearance: 'stack',
+        tuckedTilt: true,
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    await nextTick();
+
+    expect(squareWrapper.classes()).not.toContain('folder-attachment--tucked-tilt');
+    expect(tiltedWrapper.classes()).toContain('folder-attachment--tucked-tilt');
+    expect(folderPieceStyleNumber(squareWrapper, 0, '--folder-piece-rotate')).toBe(0);
+    expect(folderPieceStyleNumber(tiltedWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
+    expect(tiltedWrapper.find('.folder-attachment__folder.is-active').attributes('style'))
+      .toContain('--folder-piece-rotate: 0.00deg');
+  });
+
   it('lets mixed-edge binders follow the active physical edge instead of the root flow axis', async () => {
     const mixedTabs: FolderTabItem[] = [
       { ...tabs[0], edge: 'bottom' },
@@ -3306,11 +3407,11 @@ describe('FolderTabs', () => {
       await nextTick();
 
       expect(wrapper.find('.folder-attachment').attributes('style'))
-        .toContain('--folder-side-stack-reveal: 112px');
+        .toContain('--folder-side-stack-reveal: 120px');
 
       const deepestFolder = wrapper.findAll('.folder-attachment__folder')[1];
       const style = deepestFolder.attributes('style') ?? '';
-      const expectedReachSize = edge === 'left' || edge === 'right' ? '156.00px' : '96.00px';
+      const expectedReachSize = edge === 'left' || edge === 'right' ? '164.00px' : '96.00px';
 
       expect(style).toContain(`--folder-piece-x: ${expectedX}`);
       expect(style).toContain(`--folder-piece-y: ${expectedY}`);

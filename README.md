@@ -135,7 +135,7 @@ Most navigation props are shared by `FolderTabs` and `FolderAttachment`.
 | `density` | `spread \| overlap \| dense` | `spread` | Mainly useful for vertical stacks. |
 | `activation` | `automatic \| manual` | `automatic` | Manual moves focus without changing the active tab. |
 | `expandOn` | `active \| hover \| focus \| always` | `hover` | Controls tab label expansion triggers. Attached hover/focus tugs only the tab handle; clicking pulls the whole folder. Measured label slots expand only for the configured trigger or while pulled. |
-| `gravity` | `start \| center \| end` | `center` | Sets vertical transform origin. |
+| `gravity` | `start \| center \| end` | `center` | Sets vertical transform origin for the standalone rail. In `FolderAttachment`, `start` or `end` can also be used as the fallback slot group along each folder edge. |
 | `appearance` | `rail \| stack` | `rail` | `stack` makes vertical tabs cascade like physical folder dividers. |
 | `ariaLabel` | `string` | required | Label for the tablist. |
 | `panelIdForTab` | `(tab) => string` | `null` | Optional `aria-controls` hook. External panel IDs are tried as `panelIdForTab(tab)` first, then `tab.panelId`; `FolderAttachment` generates panel IDs when external IDs are omitted, invalid, or duplicated, while standalone `FolderTabs` uses only valid, unique external panel IDs. |
@@ -157,6 +157,7 @@ checker as a native ARIA attribute, not as this required component prop.
 | `depth` | `flat \| subtle \| raised \| deep` | `raised` | Controls binder/folder shadow depth. |
 | `layers` | `number` | `2` | Bounded by `FolderBinder` to `0`, `1`, or `2` visible underlayers. |
 | `tone` | `slate \| moss \| teal \| copper \| violet` | `slate` | Fallback tint for the binder and folders without their own `tone`. |
+| `tuckedTilt` | `boolean` | `false` | Opts tucked/background folders into small mirrored rotation while the active or pulled folder stays square. |
 | `pullDuration` | `number` | `420` | Milliseconds before the newly selected folder settles from `pulling` into `pulled`. |
 | `returnDuration` | `number` | `pullDuration * 0.75` | Milliseconds for the previous folder to fold back. Override when the return needs a different pace. |
 | `folderClass` | `string` | `''` | Class added to the active folder content surface. |
@@ -166,9 +167,11 @@ checker as a native ARIA attribute, not as this required component prop.
 
 Use `FolderAttachment` when the tab and folder should behave like one physical object. It renders one `Folder` per tab inside a `FolderBinder`; each folder owns its own tab button, and the active folder owns the visible panel content. That means pull motion, z-index, edge direction, and tab placement are structurally connected instead of visually faked.
 
-Its default slot receives `{ activeTab, activeIndex, pulled }`, its `icon` slot customizes attached tab icons, and `folderClass` is applied to the folder content surface. `FolderAttachment` generates stable, collision-resistant tab/panel IDs by default, gives every tab a real panel target with `aria-controls`, and wires each panel back with `aria-labelledby`; inactive panel shells stay hidden and empty while the active folder mounts the visible slot content. `panelIdForTab` or `tab.panelId` can override the generated panel ID. `pullDuration` controls how long the newly selected folder remains in the `pulling` phase before settling; `returnDuration` controls how long the previously pulled folder slides back, defaulting to 75% of `pullDuration` so folding feels slightly quicker than unfolding. The newly selected folder appears immediately in the pulled physical lane without an incoming transition while the previous folder folds back into its remembered tucked offset, avoiding a snap through a stale midpoint. Initial folders start tucked, including the first enabled folder that appears after an empty or all-disabled data load, and a clicked folder stays pulled until another folder is selected. The physical stack remembers selection history: the current folder is frontmost, recently selected folders sit higher in the tucked stack, and tuck depth follows the same recency order as z-index. Tucked folders remain visible as muted physical sheets, so the folder bodies/cards and their tag handles display the same remembered pile; even deeply tucked folders keep an icon-safe handle lane exposed so the icon stays fully visible and the tab remains easy to grab. Inactive hover/focus now behaves like touching or listing through a real folder tab: only the handle tugs toward the tab edge while the folder sheet stays tucked. Measured slot expansion and neighbor displacement follow `expandOn`, so `expandOn="active"` keeps hover compact while `expandOn="hover"` opens the hovered tab. The selected folder immediately owns the higher layer and does not shift when its own tag is hovered. For visual QA, `emulatedHoverKey` applies `folder-attachment--hover-emulated`, `folder-attachment__folder--hover-emulated`, and `folder-attachment__tab--hover-emulated` while using the same handle tug and displacement geometry as a real hover.
+Its default slot receives `{ activeTab, activeIndex, pulled }`, its `icon` slot customizes attached tab icons, and `folderClass` is applied to the folder content surface. `FolderAttachment` generates stable, collision-resistant tab/panel IDs by default, gives every tab a real panel target with `aria-controls`, and wires each panel back with `aria-labelledby`; inactive panel shells stay hidden and empty while the active folder mounts the visible slot content. `panelIdForTab` or `tab.panelId` can override the generated panel ID. `pullDuration` controls how long the newly selected folder remains in the `pulling` phase before settling; `returnDuration` controls how long the previously pulled folder slides back, defaulting to 75% of `pullDuration` so folding feels slightly quicker than unfolding. The newly selected folder appears immediately in the pulled physical lane without an incoming transition while the previous folder folds back into its remembered tucked offset, avoiding a snap through a stale midpoint. Initial folders start tucked, including the first enabled folder that appears after an empty or all-disabled data load, and a clicked folder stays pulled until another folder is selected. The physical stack remembers selection history: the current folder is frontmost, recently selected folders sit higher in the tucked stack, and tuck depth follows the same recency order as z-index. Tucked folders remain visible as muted physical sheets, so the folder bodies/cards and their tag handles display the same remembered pile; even deeply tucked folders keep an icon-safe handle lane exposed so the icon stays fully visible and the tab remains easy to grab. `tuckedTilt` optionally gives those background sheets a small mirrored rotation, like folders pushed back into a real binder, while active and pulled folders stay square for readability. Inactive hover/focus now behaves like touching or listing through a real folder tab: only the handle tugs toward the tab edge while the folder sheet stays tucked. Measured slot expansion and neighbor displacement follow `expandOn`, so `expandOn="active"` keeps hover compact while `expandOn="hover"` opens the hovered tab. The selected folder immediately owns the higher layer and does not shift when its own tag is hovered. For visual QA, `emulatedHoverKey` applies `folder-attachment--hover-emulated`, `folder-attachment__folder--hover-emulated`, and `folder-attachment__tab--hover-emulated` while using the same handle tug and displacement geometry as a real hover.
 
 For chessboard-style indexes, set `edge` on individual `FolderTabItem` objects. A single `FolderAttachment` can then mix compatible edges such as left/right or bottom/right; each folder still owns its tab and panel as one atomic piece, and the binder follows the active folder's edge.
+
+For split lanes on the same physical edge, set `gravity` on individual `FolderTabItem` objects. For example, top-edge tabs can have a `start` group on the left and an `end` group on the right while still pulling upward from the same folder edge.
 
 ## Folder and FolderBinder
 
@@ -200,6 +203,7 @@ import {
   getFolderPullOffset,
   getFolderStackSlots,
   getFolderTabReachSize,
+  getFolderTuckRotation,
   getFolderVisibleGrabSize,
   type FolderTabMeasurement,
 } from '@bdteo/folder-tabs';
@@ -209,6 +213,7 @@ import {
 | --- | --- |
 | `getFolderEdgeVector(edge)` | Canonical axis/sign for `top`, `right`, `bottom`, and `left`. |
 | `getFolderPieceTuckOffset(edge, index, activeIndex, density)` | Resting offset for tucked folder sheets. |
+| `getFolderTuckRotation(edge, index, activeIndex)` | Small mirrored rotation for optional tucked-folder tilt. |
 | `getFolderPullOffset(edge)` | Outward click/pull offset for the selected folder. |
 | `getFolderHoverOffset(edge)` | Small handle-only hover/focus tug. |
 | `getFolderStackSlots(options)` | Measured tab slot positions, including expanded tabs and density overlap. |
@@ -233,6 +238,7 @@ interface FolderTabItem {
   shortLabel?: string;
   srLabel?: string;
   edge?: 'top' | 'right' | 'bottom' | 'left'; // Optional per-folder edge override for FolderAttachment.
+  gravity?: 'start' | 'center' | 'end'; // Optional per-folder slot group on its edge for FolderAttachment.
   tone?: FolderTone;
   icon?: Component | null;
   count?: string | number | null;

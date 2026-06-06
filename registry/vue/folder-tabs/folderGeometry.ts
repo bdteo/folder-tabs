@@ -39,11 +39,14 @@ export const folderFallbackTabMeasurement: FolderTabMeasurement = {
 };
 
 export const folderMinimumVisibleGrabSize = 52;
-export const folderSideMinimumVisibleGrabSize = 112;
+export const folderSideMinimumVisibleGrabSize = 120;
 export const folderTuckBaseDistance = 8;
 export const folderTuckDepthStep = 7;
 export const folderDenseTuckBaseDistance = 7;
 export const folderDenseTuckDepthStep = 5;
+export const folderTuckRotationBaseDegrees = 0.42;
+export const folderTuckRotationStepDegrees = 0.18;
+export const folderTuckRotationMaxDegrees = 1.35;
 
 export function getFolderEdgeVector(edge: FolderTabEdge): FolderEdgeVector {
   if (edge === 'left') {
@@ -186,6 +189,23 @@ export function getFolderPieceTuckOffset(
   };
 }
 
+export function getFolderTuckRotation(edge: FolderTabEdge, index: number, activeIndex: number): number {
+  const distance = Math.min(Math.abs(normalizeFolderIndex(index) - normalizeFolderIndex(activeIndex)), 6);
+
+  if (distance === 0) {
+    return 0;
+  }
+
+  const stackSign = normalizeFolderIndex(index) % 2 === 0 ? -1 : 1;
+  const edgeMirror = edge === 'right' || edge === 'bottom' ? -1 : 1;
+  const amount = Math.min(
+    folderTuckRotationBaseDegrees + (distance * folderTuckRotationStepDegrees),
+    folderTuckRotationMaxDegrees,
+  );
+
+  return roundToPrecision(amount * stackSign * edgeMirror, 2);
+}
+
 export function getFolderPullOffset(edge: FolderTabEdge): { x: number; y: number } {
   const vector = getFolderEdgeVector(edge);
 
@@ -211,6 +231,11 @@ function normalizeFolderIndex(value: number): number {
 
 function normalizePositiveNumber(value: number): number {
   return Number.isFinite(value) ? Math.max(value, 0) : 0;
+}
+
+function roundToPrecision(value: number, digits: number): number {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 }
 
 function readMeasurementSize(value: number | undefined, fallback: number): number {
