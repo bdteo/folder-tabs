@@ -7,6 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 export const defaultHost = '127.0.0.1';
 export const defaultChromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const httpReadyAttempts = 300;
 
 export function assertWebSocketRuntime(commandName) {
   if (typeof WebSocket !== 'function') {
@@ -200,15 +201,11 @@ export function spawnChrome({
 
   return spawn(chromePath, [
     '--headless=new',
-    '--disable-gpu',
-    '--disable-background-networking',
-    '--disable-component-update',
-    '--disable-sync',
-    '--disable-extensions',
     '--no-first-run',
     '--no-default-browser-check',
     '--hide-scrollbars',
     `--user-data-dir=${profileDir}`,
+    `--remote-debugging-address=${defaultHost}`,
     `--remote-debugging-port=${chromePort}`,
     'about:blank',
   ], {
@@ -232,7 +229,7 @@ export function collectOutput(child, label) {
 }
 
 export async function waitForHttp(url, label, readLogs) {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < httpReadyAttempts; attempt += 1) {
     try {
       const response = await fetch(url);
 
@@ -252,7 +249,7 @@ export async function waitForHttp(url, label, readLogs) {
 export async function readChromeJson({ chromePort, host = defaultHost, method = 'GET', pathname }) {
   const url = `http://${host}:${chromePort}${pathname}`;
 
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < httpReadyAttempts; attempt += 1) {
     try {
       const response = await fetch(url, { method });
 

@@ -40,6 +40,10 @@ export const folderFallbackTabMeasurement: FolderTabMeasurement = {
 
 export const folderMinimumVisibleGrabSize = 52;
 export const folderSideMinimumVisibleGrabSize = 112;
+export const folderTuckBaseDistance = 8;
+export const folderTuckDepthStep = 7;
+export const folderDenseTuckBaseDistance = 7;
+export const folderDenseTuckDepthStep = 5;
 
 export function getFolderEdgeVector(edge: FolderTabEdge): FolderEdgeVector {
   if (edge === 'left') {
@@ -171,8 +175,10 @@ export function getFolderPieceTuckOffset(
 ): { x: number; y: number } {
   const vector = getFolderEdgeVector(edge);
   const distance = Math.min(Math.abs(normalizeFolderIndex(index) - normalizeFolderIndex(activeIndex)), 6);
-  const base = normalizeFolderTabDensity(density) === 'dense' ? 6 : 7;
-  const amount = base + (distance * 5);
+  const isDense = normalizeFolderTabDensity(density) === 'dense';
+  const base = isDense ? folderDenseTuckBaseDistance : folderTuckBaseDistance;
+  const step = isDense ? folderDenseTuckDepthStep : folderTuckDepthStep;
+  const amount = base + (distance * step);
 
   return {
     x: vector.x === 0 ? 0 : vector.x * amount * -1,

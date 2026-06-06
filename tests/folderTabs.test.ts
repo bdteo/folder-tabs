@@ -3035,7 +3035,7 @@ describe('FolderTabs', () => {
     expect(renderedTabs[1].classes()).toContain('is-hovered');
     expect(activeFolder.attributes('style')).toContain('--folder-piece-z: 300');
     expect(hoveredFolder.attributes('style')).toContain('--folder-piece-z: 40');
-    expect(hoveredFolder.attributes('style')).toContain('--folder-piece-rest-x: 22.00px');
+    expect(hoveredFolder.attributes('style')).toContain('--folder-piece-rest-x: 29.00px');
     expect(hoveredFolder.attributes('style')).toContain('--folder-tab-hover-x: -6.00px');
     expect(hoveredFolder.attributes('style')).toContain('--folder-tab-hover-y: 0.00px');
     expect(displacedFolder.attributes('style')).toContain('--folder-piece-slot: 200.00px');
@@ -3068,7 +3068,7 @@ describe('FolderTabs', () => {
     expect(focusedFolder.classes()).not.toContain('is-hovered');
     expect(activeFolder.attributes('style')).toContain('--folder-piece-z: 300');
     expect(focusedFolder.attributes('style')).toContain('--folder-piece-z: 40');
-    expect(focusedFolder.attributes('style')).toContain('--folder-piece-rest-x: 22.00px');
+    expect(focusedFolder.attributes('style')).toContain('--folder-piece-rest-x: 29.00px');
     expect(focusedFolder.attributes('style')).toContain('--folder-tab-hover-x: -6.00px');
     expect(focusedFolder.attributes('style')).toContain('--folder-tab-hover-y: 0.00px');
   });
@@ -3264,12 +3264,12 @@ describe('FolderTabs', () => {
 
     expect(bottomActive.attributes('style')).toContain('--folder-piece-z: 300');
     expect(bottomHovered.attributes('style')).toContain('--folder-piece-z: 40');
-    expect(bottomHovered.attributes('style')).toContain('--folder-piece-rest-y: -22.00px');
+    expect(bottomHovered.attributes('style')).toContain('--folder-piece-rest-y: -29.00px');
     expect(bottomHovered.attributes('style')).toContain('--folder-tab-hover-y: 6.00px');
 
     expect(rightActive.attributes('style')).toContain('--folder-piece-z: 300');
     expect(rightHovered.attributes('style')).toContain('--folder-piece-z: 40');
-    expect(rightHovered.attributes('style')).toContain('--folder-piece-rest-x: -22.00px');
+    expect(rightHovered.attributes('style')).toContain('--folder-piece-rest-x: -29.00px');
     expect(rightHovered.attributes('style')).toContain('--folder-tab-hover-x: 6.00px');
   });
 
@@ -3282,10 +3282,10 @@ describe('FolderTabs', () => {
       { key: 'audit', label: 'Audit trail', shortLabel: 'Audit', icon: Icon, count: 5 },
     ];
     const expectedRest = {
-      top: ['0.00px', '27.00px'],
-      bottom: ['0.00px', '-27.00px'],
-      left: ['27.00px', '0.00px'],
-      right: ['-27.00px', '0.00px'],
+      top: ['0.00px', '36.00px'],
+      bottom: ['0.00px', '-36.00px'],
+      left: ['36.00px', '0.00px'],
+      right: ['-36.00px', '0.00px'],
     } as const;
 
     for (const [edge, [expectedX, expectedY]] of Object.entries(expectedRest)) {
@@ -3310,7 +3310,7 @@ describe('FolderTabs', () => {
 
       const deepestFolder = wrapper.findAll('.folder-attachment__folder')[1];
       const style = deepestFolder.attributes('style') ?? '';
-      const expectedReachSize = edge === 'left' || edge === 'right' ? '147.00px' : '87.00px';
+      const expectedReachSize = edge === 'left' || edge === 'right' ? '156.00px' : '96.00px';
 
       expect(style).toContain(`--folder-piece-x: ${expectedX}`);
       expect(style).toContain(`--folder-piece-y: ${expectedY}`);
@@ -3366,10 +3366,10 @@ describe('FolderTabs', () => {
 
   it('applies the same readable tucked depth ladder on every edge', async () => {
     const expectedRest = {
-      top: ['0.00px', '22.00px'],
-      bottom: ['0.00px', '-22.00px'],
-      left: ['22.00px', '0.00px'],
-      right: ['-22.00px', '0.00px'],
+      top: ['0.00px', '29.00px'],
+      bottom: ['0.00px', '-29.00px'],
+      left: ['29.00px', '0.00px'],
+      right: ['-29.00px', '0.00px'],
     } as const;
 
     for (const [edge, [expectedX, expectedY]] of Object.entries(expectedRest)) {
@@ -3562,8 +3562,8 @@ describe('FolderTabs', () => {
       expect(folderPieceZ(wrapper, 4)).toBe(300);
       expect(folderPieceZ(wrapper, 2)).toBeGreaterThan(folderPieceZ(wrapper, 3));
       expect(folderPieceZ(wrapper, 2)).toBeGreaterThan(folderPieceZ(wrapper, 1));
-      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-rest-x')).toBe(12);
-      expect(folderPieceStyleNumber(wrapper, 3, '--folder-piece-rest-x')).toBe(17);
+      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-rest-x')).toBe(15);
+      expect(folderPieceStyleNumber(wrapper, 3, '--folder-piece-rest-x')).toBe(22);
 
       await wrapper.findAll('[role="tab"]')[1].trigger('click');
       await nextTick();
@@ -3576,9 +3576,9 @@ describe('FolderTabs', () => {
       expect(folderPieceZ(wrapper, 4)).toBeGreaterThan(folderPieceZ(wrapper, 2));
       expect(folderPieceZ(wrapper, 2)).toBeGreaterThan(folderPieceZ(wrapper, 3));
       expect(folderPieceZ(wrapper, 3)).toBeGreaterThan(folderPieceZ(wrapper, 0));
-      expect(folderPieceStyleNumber(wrapper, 4, '--folder-piece-rest-x')).toBe(12);
-      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-rest-x')).toBe(17);
-      expect(folderPieceStyleNumber(wrapper, 0, '--folder-piece-rest-x')).toBe(27);
+      expect(folderPieceStyleNumber(wrapper, 4, '--folder-piece-rest-x')).toBe(15);
+      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-rest-x')).toBe(22);
+      expect(folderPieceStyleNumber(wrapper, 0, '--folder-piece-rest-x')).toBe(36);
 
       const historicalZBeforeHover = folderPieceZ(wrapper, 2);
       await wrapper.findAll('[role="tab"]')[2].trigger('pointerenter');

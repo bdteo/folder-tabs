@@ -278,12 +278,12 @@ describe('folder tab helpers', () => {
     expect(getFolderHoverOffset('bottom')).toEqual({ x: 0, y: 6 });
   });
 
-  it('tucks physical folders inward with a readable 5px depth step', () => {
-    expect(getFolderPieceTuckOffset('left', 0, 3, 'spread')).toEqual({ x: 22, y: 0 });
-    expect(getFolderPieceTuckOffset('right', 0, 3, 'spread')).toEqual({ x: -22, y: 0 });
-    expect(getFolderPieceTuckOffset('top', 0, 3, 'spread')).toEqual({ x: 0, y: 22 });
-    expect(getFolderPieceTuckOffset('bottom', 0, 3, 'spread')).toEqual({ x: 0, y: -22 });
-    expect(getFolderPieceTuckOffset('left', 0, 2, 'dense')).toEqual({ x: 16, y: 0 });
+  it('tucks physical folders inward with a readable 7px depth step', () => {
+    expect(getFolderPieceTuckOffset('left', 0, 3, 'spread')).toEqual({ x: 29, y: 0 });
+    expect(getFolderPieceTuckOffset('right', 0, 3, 'spread')).toEqual({ x: -29, y: 0 });
+    expect(getFolderPieceTuckOffset('top', 0, 3, 'spread')).toEqual({ x: 0, y: 29 });
+    expect(getFolderPieceTuckOffset('bottom', 0, 3, 'spread')).toEqual({ x: 0, y: -29 });
+    expect(getFolderPieceTuckOffset('left', 0, 2, 'dense')).toEqual({ x: 17, y: 0 });
   });
 
   it('extends buried tab handles enough to preserve the compact handle lane', () => {
@@ -372,7 +372,7 @@ describe('folder tab helpers', () => {
     expect(getFolderDensityOverlap('loose' as any, 'accordion' as any)).toBe(0);
     expect(getFolderTabReachSize(Number.NaN, Number.POSITIVE_INFINITY)).toBe(0);
     expect(getFolderVisibleGrabSize(Number.NaN, Number.POSITIVE_INFINITY, Number.NaN)).toBe(0);
-    expect(tuckedOffset).toEqual({ x: 0, y: 7 });
+    expect(tuckedOffset).toEqual({ x: 0, y: 8 });
     expect(slots).toEqual([0, 44]);
     expect(slots.every(Number.isFinite)).toBe(true);
     expect(Object.values(tuckedOffset).every(Number.isFinite)).toBe(true);
