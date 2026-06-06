@@ -469,6 +469,34 @@ describe('FolderTabs', () => {
     expect(folderTabsCss).not.toContain('    transition: none;\n');
   });
 
+  it('keeps standalone horizontal tabs free of panel-seam underlines', () => {
+    expect(folderTabsCss).toContain([
+      '.folder-tabs--horizontal .folder-tabs__tab::before {',
+      '  inset-inline: 0.5rem;',
+      '  inset-block-end: 0;',
+      '  block-size: 1px;',
+      '  display: none;',
+      '}',
+    ].join('\n'));
+    expect(folderTabsCss).toContain([
+      '.folder-tabs--horizontal .folder-tabs__tab::after {',
+      '  inset-inline: 0;',
+      '  inset-block-end: -1px;',
+      '  block-size: 1px;',
+      '  display: none;',
+      '}',
+    ].join('\n'));
+    expect(folderTabsCss).toContain([
+      '.folder-tabs--horizontal .folder-tabs__tab:hover {',
+      '  box-shadow:',
+      '    0 0.65rem 1.45rem rgba(0, 0, 0, 0.18),',
+      '    inset 0 1px 0 rgba(255, 255, 255, 0.055);',
+      '  transform: translateY(var(--ft-hover-lift));',
+      '}',
+    ].join('\n'));
+    expect(folderTabsCss).not.toContain('box-shadow: inset 0 -1px 0 var(--ft-surface-active), var(--ft-shadow);');
+  });
+
   it('lets each attached folder piece own tab geometry independently of root orientation', () => {
     expect(folderTabsCss).toContain('.folder-attachment__folder--vertical .folder-attachment__tab {');
     expect(folderTabsCss).toContain('.folder-attachment__folder--edge-right .folder-attachment__tab {');
