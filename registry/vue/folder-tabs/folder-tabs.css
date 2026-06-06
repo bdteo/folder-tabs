@@ -1372,9 +1372,7 @@
 
 .folder-attachment__folder--horizontal .folder-attachment__tab.is-open,
 .folder-attachment__folder--horizontal .folder-attachment__tab.is-expanded,
-.folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab,
-.folder-attachment--expand-hover .folder-attachment__folder--horizontal .folder-attachment__tab:hover,
-.folder-attachment--expand-focus .folder-attachment__folder--horizontal .folder-attachment__tab:focus-visible {
+.folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab {
   width: var(--folder-attached-tab-open-size);
   height: var(--folder-attached-tab-reach-size);
   inline-size: var(--folder-attached-tab-open-size);
@@ -1383,9 +1381,7 @@
 
 .folder-attachment__folder--vertical .folder-attachment__tab.is-open,
 .folder-attachment__folder--vertical .folder-attachment__tab.is-expanded,
-.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab,
-.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover,
-.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible {
+.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab {
   width: var(--folder-attached-tab-reach-size);
   height: var(--folder-attached-tab-open-size);
   inline-size: var(--folder-attached-tab-reach-size);
@@ -1434,9 +1430,7 @@
 
 .folder-attachment__folder--horizontal .folder-attachment__tab.is-open .folder-attachment__tab-icon,
 .folder-attachment__folder--horizontal .folder-attachment__tab.is-expanded .folder-attachment__tab-icon,
-.folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab .folder-attachment__tab-icon,
-.folder-attachment--expand-hover .folder-attachment__folder--horizontal .folder-attachment__tab:hover .folder-attachment__tab-icon,
-.folder-attachment--expand-focus .folder-attachment__folder--horizontal .folder-attachment__tab:focus-visible .folder-attachment__tab-icon {
+.folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab .folder-attachment__tab-icon {
   inset-inline-start: 0.75rem;
   opacity: 0.96;
   transform: translateY(-50%);
@@ -1450,13 +1444,7 @@
 .folder-attachment__folder--horizontal .folder-attachment__tab.is-expanded .folder-attachment__tab-lock,
 .folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab .folder-attachment__tab-label,
 .folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab .folder-attachment__tab-count,
-.folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab .folder-attachment__tab-lock,
-.folder-attachment--expand-hover .folder-attachment__folder--horizontal .folder-attachment__tab:hover .folder-attachment__tab-label,
-.folder-attachment--expand-hover .folder-attachment__folder--horizontal .folder-attachment__tab:hover .folder-attachment__tab-count,
-.folder-attachment--expand-hover .folder-attachment__folder--horizontal .folder-attachment__tab:hover .folder-attachment__tab-lock,
-.folder-attachment--expand-focus .folder-attachment__folder--horizontal .folder-attachment__tab:focus-visible .folder-attachment__tab-label,
-.folder-attachment--expand-focus .folder-attachment__folder--horizontal .folder-attachment__tab:focus-visible .folder-attachment__tab-count,
-.folder-attachment--expand-focus .folder-attachment__folder--horizontal .folder-attachment__tab:focus-visible .folder-attachment__tab-lock {
+.folder-attachment--expand-always .folder-attachment__folder--horizontal .folder-attachment__tab .folder-attachment__tab-lock {
   opacity: 1;
   transform: translateY(-50%);
   visibility: visible;
@@ -1517,9 +1505,7 @@
 
 .folder-attachment__folder--vertical .folder-attachment__tab.is-open .folder-attachment__tab-icon,
 .folder-attachment__folder--vertical .folder-attachment__tab.is-expanded .folder-attachment__tab-icon,
-.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-icon,
-.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover .folder-attachment__tab-icon,
-.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible .folder-attachment__tab-icon {
+.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-icon {
   inset-block-start: var(--folder-attached-tab-vertical-icon-offset);
   opacity: 0.96;
   transform: translateX(-50%);
@@ -1530,20 +1516,14 @@
 .folder-attachment__folder--vertical .folder-attachment__tab.is-expanded .folder-attachment__tab-label,
 .folder-attachment__folder--vertical .folder-attachment__tab.is-expanded .folder-attachment__tab-count,
 .folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-label,
-.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-count,
-.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover .folder-attachment__tab-label,
-.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover .folder-attachment__tab-count,
-.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible .folder-attachment__tab-label,
-.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible .folder-attachment__tab-count {
+.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-count {
   opacity: 1;
   visibility: visible;
 }
 
 .folder-attachment__folder--vertical .folder-attachment__tab.is-open .folder-attachment__tab-count,
 .folder-attachment__folder--vertical .folder-attachment__tab.is-expanded .folder-attachment__tab-count,
-.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-count,
-.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover .folder-attachment__tab-count,
-.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible .folder-attachment__tab-count {
+.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab .folder-attachment__tab-count {
   transform: translateX(-50%);
 }
 

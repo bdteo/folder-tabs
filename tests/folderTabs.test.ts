@@ -412,15 +412,22 @@ describe('FolderTabs', () => {
     expect(folderTabsCss).toContain([
       '.folder-attachment__folder--vertical .folder-attachment__tab.is-open,',
       '.folder-attachment__folder--vertical .folder-attachment__tab.is-expanded,',
-      '.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab,',
-      '.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover,',
-      '.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible {',
+      '.folder-attachment--expand-always .folder-attachment__folder--vertical .folder-attachment__tab {',
       '  width: var(--folder-attached-tab-reach-size);',
       '  height: var(--folder-attached-tab-open-size);',
       '  inline-size: var(--folder-attached-tab-reach-size);',
       '  block-size: var(--folder-attached-tab-open-size);',
       '}',
     ].join('\n'));
+  });
+
+  it('keeps attached folder expansion owned by component state classes', () => {
+    expect(folderTabsCss).toContain('.folder-attachment__folder--horizontal .folder-attachment__tab.is-expanded,');
+    expect(folderTabsCss).toContain('.folder-attachment__folder--vertical .folder-attachment__tab.is-expanded,');
+    expect(folderTabsCss).not.toContain('.folder-attachment--expand-hover .folder-attachment__folder--horizontal .folder-attachment__tab:hover');
+    expect(folderTabsCss).not.toContain('.folder-attachment--expand-hover .folder-attachment__folder--vertical .folder-attachment__tab:hover');
+    expect(folderTabsCss).not.toContain('.folder-attachment--expand-focus .folder-attachment__folder--horizontal .folder-attachment__tab:focus-visible');
+    expect(folderTabsCss).not.toContain('.folder-attachment--expand-focus .folder-attachment__folder--vertical .folder-attachment__tab:focus-visible');
   });
 
   it('keeps hidden attachment measurement tabs from forming a horizontal overflow rail', () => {
@@ -3306,6 +3313,56 @@ describe('FolderTabs', () => {
     expect(folders[1].classes()).not.toContain('folder-attachment__folder--hover-emulated');
     expect(folders[3].classes()).toContain('is-hovered');
     expect(renderedTabs[3].classes()).toContain('is-hovered');
+  });
+
+  it('lets an active end-gravity split tab suppress emulated neighbor hover', async () => {
+    const wraparoundTabs: FolderTabItem[] = [
+      { key: 'intake', label: 'Client intake', shortLabel: 'Intake', icon: Icon, count: 8, edge: 'top', gravity: 'start' },
+      { key: 'evidence', label: 'Evidence cabinet', shortLabel: 'Evidence', icon: Icon, count: 14, edge: 'top', gravity: 'start' },
+      { key: 'strategy', label: 'Strategy map', shortLabel: 'Strategy', icon: Icon, count: 3, edge: 'top', gravity: 'end' },
+      { key: 'signals', label: 'Signal model', shortLabel: 'Signals', icon: Icon, count: 6, edge: 'top', gravity: 'end' },
+      { key: 'review', label: 'Counsel review', shortLabel: 'Review', icon: Icon, count: 2, edge: 'top', gravity: 'end' },
+    ];
+
+    const wrapper = mount(FolderAttachment, {
+      props: {
+        tabs: wraparoundTabs,
+        modelValue: 'review',
+        ariaLabel: 'Split case binder',
+        orientation: 'horizontal',
+        edge: 'top',
+        appearance: 'stack',
+        expandOn: 'hover',
+        emulatedHoverKey: 'strategy',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    await nextTick();
+
+    const renderedTabs = wrapper.findAll('[role="tab"]');
+    let folders = wrapper.findAll('.folder-attachment__folder');
+
+    expect(folders[2].classes()).toContain('is-hovered');
+    expect(renderedTabs[2].classes()).toContain('is-expanded');
+    expect(folders[4].classes()).toContain('is-active');
+    expect(renderedTabs[4].classes()).not.toContain('is-expanded');
+
+    await renderedTabs[4].trigger('pointerenter');
+    await nextTick();
+    folders = wrapper.findAll('.folder-attachment__folder');
+
+    expect(folders[2].classes()).not.toContain('is-hovered');
+    expect(renderedTabs[2].classes()).not.toContain('is-expanded');
+    expect(folders[4].classes()).not.toContain('is-hovered');
+    expect(renderedTabs[4].classes()).not.toContain('is-expanded');
+
+    await renderedTabs[4].trigger('pointerleave');
+    await nextTick();
+
+    expect(wrapper.findAll('.folder-attachment__folder')[2].classes()).toContain('is-hovered');
   });
 
   it('does not hover-expand the selected bottom or right edge folder', async () => {
