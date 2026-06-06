@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, ref, watch, type ComputedRef } from 'vue';
-import type { FolderTabItem, FolderTabKey } from './folderTabs';
+import { isFolderTabDisabled, normalizeFolderMotionDuration, type FolderTabItem, type FolderTabKey } from './folderTabs';
 
 export type FolderPullPhase = 'tucked' | 'pulling' | 'pulled' | 'returning';
 
@@ -16,27 +16,54 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
   const pullingKey = ref<string | null>(null);
   const returningKey = ref<string | null>(null);
   const selectingKey = ref<string | null>(null);
+  const frontKey = ref<string | null>(null);
   let pullTimer: ReturnType<typeof window.setTimeout> | null = null;
   let returnTimer: ReturnType<typeof window.setTimeout> | null = null;
+  let requestedKeyTimer: ReturnType<typeof window.setTimeout> | null = null;
   let requestedKey: string | null = null;
   let hasObservedInitialKey = false;
 
-  const isPulled = computed(() => pulledKey.value !== null && pulledKey.value === options.activeKey.value);
+  const isPulled = computed(() => (
+    (pulledKey.value !== null && pulledKey.value === options.activeKey.value)
+    || (selectingKey.value !== null && selectingKey.value === options.activeKey.value)
+  ));
 
   watch(options.activeKey, (key) => {
     if (!key) {
       resetMotion();
+      hasObservedInitialKey = false;
       phase.value = 'tucked';
-      hasObservedInitialKey = true;
       return;
     }
 
     if (!hasObservedInitialKey) {
       hasObservedInitialKey = true;
+      frontKey.value = key;
       return;
     }
 
     if (key === pulledKey.value || key === requestedKey) {
+      if (key === requestedKey) {
+        selectingKey.value = key;
+      }
+
+      frontKey.value = key;
+      return;
+    }
+
+    frontKey.value = key;
+    selectingKey.value = key;
+
+    if (returningKey.value && phase.value === 'returning') {
+      requestedKey = key;
+      return;
+    }
+
+    if (pulledKey.value && pulledKey.value !== key) {
+      requestedKey = key;
+      startReturn(pulledKey.value, () => {
+        pullRequestedKeyAfterReturn(key);
+      });
       return;
     }
 
@@ -49,22 +76,31 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
   });
 
   function selectFolder(tab: FolderTabItem): void {
-    if (tab.disabled) {
+    if (isFolderTabDisabled(tab)) {
       return;
     }
 
     const nextKey = String(tab.key);
 
     if (pulledKey.value === nextKey && phase.value !== 'returning') {
-      options.select(tab.key, tab);
       return;
     }
 
     selectingKey.value = nextKey;
+    frontKey.value = nextKey;
+
+    if (returningKey.value && phase.value === 'returning') {
+      requestedKey = nextKey;
+      options.select(tab.key, tab);
+      return;
+    }
 
     if (pulledKey.value && pulledKey.value !== nextKey) {
+      requestedKey = nextKey;
+      options.select(tab.key, tab);
+
       startReturn(pulledKey.value, () => {
-        commitSelection(tab, nextKey);
+        pullRequestedKeyAfterReturn(nextKey);
       });
       return;
     }
@@ -77,12 +113,7 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
     requestedKey = normalizedKey;
     startPull(normalizedKey);
     options.select(tab.key, tab);
-
-    window.setTimeout(() => {
-      if (requestedKey === normalizedKey) {
-        requestedKey = null;
-      }
-    }, 0);
+    clearRequestedKey(normalizedKey);
   }
 
   function startPull(key: string): void {
@@ -93,6 +124,7 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
     pullingKey.value = key;
     returningKey.value = null;
     selectingKey.value = key;
+    frontKey.value = key;
 
     pullTimer = window.setTimeout(() => {
       if (pulledKey.value === key) {
@@ -102,7 +134,7 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
       }
 
       pullTimer = null;
-    }, normalizeDuration(options.pullDuration()));
+    }, normalizeFolderMotionDuration(options.pullDuration()));
   }
 
   function startReturn(key: string, afterReturn: () => void): void {
@@ -113,12 +145,16 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
     pullingKey.value = null;
     pulledKey.value = null;
 
+    if (selectingKey.value === key) {
+      selectingKey.value = null;
+    }
+
     returnTimer = window.setTimeout(() => {
       returningKey.value = null;
       phase.value = 'tucked';
       returnTimer = null;
       afterReturn();
-    }, normalizeDuration(options.returnDuration()));
+    }, normalizeFolderMotionDuration(options.returnDuration()));
   }
 
   function clearPullTimer(): void {
@@ -135,18 +171,45 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
     }
   }
 
+  function clearRequestedKeyTimer(): void {
+    if (requestedKeyTimer !== null) {
+      window.clearTimeout(requestedKeyTimer);
+      requestedKeyTimer = null;
+    }
+  }
+
+  function pullRequestedKeyAfterReturn(fallbackKey: string): void {
+    const nextKey = requestedKey ?? fallbackKey;
+
+    if (options.activeKey.value === nextKey) {
+      startPull(nextKey);
+    }
+
+    clearRequestedKey(nextKey);
+  }
+
   function resetMotion(): void {
     clearPullTimer();
     clearReturnTimer();
+    clearRequestedKeyTimer();
     pulledKey.value = null;
     pullingKey.value = null;
     returningKey.value = null;
     selectingKey.value = null;
+    frontKey.value = null;
     requestedKey = null;
   }
 
-  function normalizeDuration(duration: number): number {
-    return Math.max(Math.round(duration), 0);
+  function clearRequestedKey(key: string): void {
+    clearRequestedKeyTimer();
+
+    requestedKeyTimer = window.setTimeout(() => {
+      if (requestedKey === key) {
+        requestedKey = null;
+      }
+
+      requestedKeyTimer = null;
+    }, 0);
   }
 
   function isPullingKey(key: FolderTabKey): boolean {
@@ -165,6 +228,18 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
     return String(key) === selectingKey.value;
   }
 
+  function isHandoffKey(key: FolderTabKey): boolean {
+    const normalizedKey = String(key);
+
+    return normalizedKey === selectingKey.value
+      && normalizedKey !== pullingKey.value
+      && normalizedKey !== pulledKey.value;
+  }
+
+  function isFrontKey(key: FolderTabKey): boolean {
+    return String(key) === frontKey.value;
+  }
+
   return {
     isPulled,
     phase,
@@ -172,10 +247,13 @@ export function useFolderPullMachine(options: FolderPullMachineOptions) {
     pullingKey,
     returningKey,
     selectingKey,
+    frontKey,
     isPulledKey,
     isPullingKey,
     isReturningKey,
     isSelectingKey,
+    isHandoffKey,
+    isFrontKey,
     selectFolder,
   };
 }

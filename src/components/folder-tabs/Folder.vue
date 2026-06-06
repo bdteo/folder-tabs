@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { FolderTone } from './folderTabs';
+import { normalizeFolderTone, type FolderTone } from './folderTabs';
 
 const props = withDefaults(defineProps<{
   tone?: FolderTone;
@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<{
 
 const rootClasses = computed(() => [
   'folder',
-  `folder--tone-${props.tone}`,
+  `folder--tone-${normalizeFolderTone(props.tone)}`,
 ]);
 </script>
 

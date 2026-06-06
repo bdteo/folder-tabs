@@ -3,7 +3,13 @@ import { computed } from 'vue';
 import Folder from './Folder.vue';
 import FolderBinder from './FolderBinder.vue';
 import {
+  getFolderTabOrientationForEdge,
+  normalizeFolderActiveIndex,
+  normalizeFolderBinderDepth,
+  normalizeFolderLayerCount,
   normalizeFolderTabEdge,
+  normalizeFolderTabOrientation,
+  normalizeFolderTone,
   type FolderTabEdge,
   type FolderTabOrientation,
   type FolderTabPanelStackDepth,
@@ -28,32 +34,38 @@ const props = withDefaults(defineProps<{
   pulled: false,
 });
 
-const normalizedEdge = computed(() => normalizeFolderTabEdge(props.edge, props.orientation));
-const boundedLayers = computed(() => Math.min(Math.max(Math.round(props.layers), 0), 2));
+const normalizedOrientation = computed(() => normalizeFolderTabOrientation(props.orientation));
+const normalizedEdge = computed(() => normalizeFolderTabEdge(props.edge, normalizedOrientation.value));
+const physicalOrientation = computed(() => getFolderTabOrientationForEdge(normalizedEdge.value));
+const normalizedDepth = computed(() => normalizeFolderBinderDepth(props.depth));
+const normalizedTone = computed(() => normalizeFolderTone(props.tone));
+const boundedLayers = computed(() => normalizeFolderLayerCount(props.layers));
+const boundedActiveIndex = computed(() => normalizeFolderActiveIndex(props.activeIndex));
+const isPulled = computed(() => props.pulled === true);
 
 const legacyClasses = computed(() => [
   'folder-tab-panel-stack',
-  `folder-tab-panel-stack--${props.orientation}`,
+  `folder-tab-panel-stack--${physicalOrientation.value}`,
   `folder-tab-panel-stack--edge-${normalizedEdge.value}`,
-  `folder-tab-panel-stack--depth-${props.depth}`,
+  `folder-tab-panel-stack--depth-${normalizedDepth.value}`,
   `folder-tab-panel-stack--layers-${boundedLayers.value}`,
-  `folder-tab-panel-stack--tone-${props.tone}`,
-  { 'is-pulled': props.pulled },
+  `folder-tab-panel-stack--tone-${normalizedTone.value}`,
+  { 'is-pulled': isPulled.value },
 ]);
 </script>
 
 <template>
   <FolderBinder
     :class="legacyClasses"
-    :orientation="props.orientation"
-    :edge="props.edge"
-    :depth="props.depth"
-    :layers="props.layers"
-    :active-index="props.activeIndex"
-    :tone="props.tone"
-    :pulled="props.pulled"
+    :orientation="physicalOrientation"
+    :edge="normalizedEdge"
+    :depth="normalizedDepth"
+    :layers="boundedLayers"
+    :active-index="boundedActiveIndex"
+    :tone="normalizedTone"
+    :pulled="isPulled"
   >
-    <Folder :tone="props.tone">
+    <Folder :tone="normalizedTone">
       <slot />
     </Folder>
   </FolderBinder>

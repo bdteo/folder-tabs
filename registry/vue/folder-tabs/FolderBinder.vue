@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import {
+  getFolderTabOrientationForEdge,
+  normalizeFolderActiveIndex,
+  normalizeFolderBinderDepth,
+  normalizeFolderLayerCount,
   normalizeFolderTabEdge,
+  normalizeFolderTabOrientation,
+  normalizeFolderTone,
   type FolderBinderDepth,
   type FolderTabEdge,
   type FolderTabOrientation,
@@ -26,18 +32,23 @@ const props = withDefaults(defineProps<{
   pulled: false,
 });
 
-const normalizedEdge = computed(() => normalizeFolderTabEdge(props.edge, props.orientation));
-const boundedLayers = computed(() => Math.min(Math.max(Math.round(props.layers), 0), 2));
-const boundedActiveIndex = computed(() => Math.max(Math.round(props.activeIndex), 0));
+const normalizedOrientation = computed(() => normalizeFolderTabOrientation(props.orientation));
+const normalizedEdge = computed(() => normalizeFolderTabEdge(props.edge, normalizedOrientation.value));
+const physicalOrientation = computed(() => getFolderTabOrientationForEdge(normalizedEdge.value));
+const normalizedDepth = computed(() => normalizeFolderBinderDepth(props.depth));
+const normalizedTone = computed(() => normalizeFolderTone(props.tone));
+const boundedLayers = computed(() => normalizeFolderLayerCount(props.layers));
+const boundedActiveIndex = computed(() => normalizeFolderActiveIndex(props.activeIndex));
+const isPulled = computed(() => props.pulled === true);
 
 const rootClasses = computed(() => [
   'folder-binder',
-  `folder-binder--${props.orientation}`,
+  `folder-binder--${physicalOrientation.value}`,
   `folder-binder--edge-${normalizedEdge.value}`,
-  `folder-binder--depth-${props.depth}`,
+  `folder-binder--depth-${normalizedDepth.value}`,
   `folder-binder--layers-${boundedLayers.value}`,
-  `folder-binder--tone-${props.tone}`,
-  { 'is-pulled': props.pulled },
+  `folder-binder--tone-${normalizedTone.value}`,
+  { 'is-pulled': isPulled.value },
 ]);
 
 const rootStyle = computed(() => ({

@@ -38,15 +38,32 @@
       "require": "./dist/folder-tabs.umd.cjs"
     },
     "./style.css": "./dist/folder-tabs.css",
-    "./source": "./src/components/folder-tabs/index.ts"
+    "./source": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/components/folder-tabs/index.ts"
+    }
   },
   "files": [
+    "docs/screenshots",
     "dist",
     "registry",
+    "scripts/check-demo-geometry.mjs",
+    "scripts/check-demo-screenshots.mjs",
+    "scripts/check-package-consumer.mjs",
+    "scripts/capture-demo-screenshots.mjs",
+    "scripts/demo-cdp-utils.mjs",
+    "scripts/demo-screenshot-utils.mjs",
+    "scripts/verify-all.mjs",
+    "src/vite-env.d.ts",
     "src/components/folder-tabs"
   ],
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "screenshots": "node scripts/capture-demo-screenshots.mjs",
+    "verify": "node scripts/verify-all.mjs",
+    "verify:demo": "node scripts/check-demo-geometry.mjs",
+    "verify:package": "node scripts/check-package-consumer.mjs",
+    "verify:screenshots": "node scripts/check-demo-screenshots.mjs",
     "build": "vue-tsc --noEmit && vite build --config vite.lib.config.ts",
     "build:demo": "vite build --outDir dist-demo",
     "test": "vitest run",

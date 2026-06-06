@@ -1,19 +1,37 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, type ComponentPublicInstance } from 'vue';
+import { computed, onBeforeUnmount, onMounted, onUpdated, ref, useId, watch, type ComponentPublicInstance } from 'vue';
 import Folder from './Folder.vue';
 import FolderBinder from './FolderBinder.vue';
 import {
   folderFallbackTabMeasurement,
   getCompactSize,
+  getFolderEdgeVector,
   getFolderHoverOffset,
+  getFolderMinimumGrabSize,
+  getFolderMinimumVisibleGrabSize,
   getFolderPieceTuckOffset,
   getFolderPullOffset,
   getFolderStackSlots,
+  getFolderTabReachSize,
   type FolderTabMeasurement,
 } from './folderGeometry';
 import {
+  getFolderTabIcon,
+  getFolderTabOrientationForEdge,
+  hasFolderTabIcon,
   hasFolderTabCount,
   hasLimitedFolderTabTotal,
+  isFolderTabDisabled,
+  normalizeFolderBinderDepth,
+  normalizeFolderTabEdge,
+  normalizeFolderTabActivation,
+  normalizeFolderTabAppearance,
+  normalizeFolderTabDensity,
+  normalizeFolderTabExpandOn,
+  normalizeFolderTabGravity,
+  normalizeFolderTabKeyForLookup,
+  normalizeFolderMotionDuration,
+  normalizeFolderTone,
   type FolderBinderDepth,
   type FolderTabActivation,
   type FolderTabAppearance,
@@ -61,7 +79,6 @@ const props = withDefaults(defineProps<{
   layers: 2,
   tone: 'slate',
   pullDuration: 420,
-  returnDuration: 220,
   emulatedHoverKey: null,
   folderClass: '',
   panelIdForTab: null,
@@ -74,33 +91,97 @@ const emit = defineEmits<{
 
 type MeasurementSlot = 'compact' | 'open';
 type MeasurementRefs = Partial<Record<MeasurementSlot, HTMLButtonElement>>;
+type FolderLayout = {
+  activeIndex: number;
+  edge: FolderTabEdge;
+  index: number;
+  orientation: FolderTabOrientation;
+  slot: number;
+};
 
-const tabList = useFolderTabList(props);
+const folderEdges: FolderTabEdge[] = ['top', 'right', 'bottom', 'left'];
+const defaultReturnDurationRatio = 0.75;
+const attachmentId = useId();
+const tabList = useFolderTabList(props, {
+  idBase: `folder-attachment-${attachmentId}`,
+  keyboardOrientation: () => (hasMixedEdges.value ? 'both' : binderOrientation.value),
+});
 const measurementRefs = new Map<string, MeasurementRefs>();
 const measurements = ref<Record<string, FolderTabMeasurement>>({});
 const hoveredKey = ref<string | null>(null);
-const tabOpenBreathingRoom = 24;
+const focusedKey = ref<string | null>(null);
+const selectionHistory = ref<string[]>([]);
+const tabOpenBreathingRoom = 16;
+const folderPieceZ = {
+  restingBase: 40,
+  returning: 240,
+  active: 250,
+  pulled: 260,
+  pulling: 270,
+  selecting: 280,
+  front: 300,
+};
 let measureFrame: number | null = null;
+let isUnmounted = false;
 
 const activeIndex = computed(() => {
+  if (!tabList.activeKey.value) {
+    return -1;
+  }
+
   const index = tabList.visibleTabs.value.findIndex((tab) => String(tab.key) === tabList.activeKey.value);
-  return Math.max(index, 0);
+  return index === -1 ? -1 : index;
 });
 
-const activeTab = computed(() => tabList.visibleTabs.value[activeIndex.value] ?? null);
+const activeTab = computed(() => (activeIndex.value >= 0
+  ? tabList.visibleTabs.value[activeIndex.value] ?? null
+  : null));
+const normalizedActivation = computed(() => normalizeFolderTabActivation(props.activation));
+const normalizedAppearance = computed(() => normalizeFolderTabAppearance(props.appearance));
+const normalizedDensity = computed(() => normalizeFolderTabDensity(props.density));
+const normalizedDepth = computed(() => normalizeFolderBinderDepth(props.depth));
+const normalizedExpandOn = computed(() => normalizeFolderTabExpandOn(props.expandOn));
+const normalizedGravity = computed(() => normalizeFolderTabGravity(props.gravity));
+const normalizedTone = computed(() => normalizeFolderTone(props.tone));
+const activeEdge = computed(() => activeTab.value
+  ? getTabEdge(activeTab.value)
+  : tabList.normalizedEdge.value);
 
-const emulatedHoverKey = computed(() => (
-  props.emulatedHoverKey === null || props.emulatedHoverKey === undefined
-    ? null
-    : String(props.emulatedHoverKey)
+const visibleEdges = computed(() => new Set(tabList.visibleTabs.value.map((tab) => getTabEdge(tab))));
+
+const hasMixedEdges = computed(() => visibleEdges.value.size > 1);
+
+const binderOrientation = computed(() => getFolderTabOrientationForEdge(activeEdge.value));
+
+const rootOrientation = computed(() => (
+  hasMixedEdges.value ? tabList.normalizedOrientation.value : binderOrientation.value
 ));
 
+const rootEdgeClassFlags = computed(() => (
+  folderEdges.reduce<Record<string, boolean>>((classes, edge) => {
+    classes[`folder-attachment--has-edge-${edge}`] = visibleEdges.value.has(edge);
+    return classes;
+  }, {})
+));
+
+const tabListAriaOrientation = computed(() => (
+  hasMixedEdges.value ? undefined : binderOrientation.value
+));
+
+const emulatedHoverKey = computed(() => normalizeFolderTabKeyForLookup(props.emulatedHoverKey));
+
 const effectiveHoverKey = computed(() => hoveredKey.value ?? emulatedHoverKey.value);
+const effectivePullDuration = computed(() => normalizeFolderMotionDuration(props.pullDuration));
+const effectiveReturnDuration = computed(() => (
+  props.returnDuration === undefined || props.returnDuration === null
+    ? normalizeFolderMotionDuration(effectivePullDuration.value * defaultReturnDurationRatio)
+    : normalizeFolderMotionDuration(props.returnDuration)
+));
 
 const motion = useFolderPullMachine({
   activeKey: tabList.activeKey,
-  pullDuration: () => props.pullDuration,
-  returnDuration: () => props.returnDuration,
+  pullDuration: () => effectivePullDuration.value,
+  returnDuration: () => effectiveReturnDuration.value,
   select: (key, tab) => {
     emit('update:modelValue', key);
     emit('activate', key, tab);
@@ -109,45 +190,129 @@ const motion = useFolderPullMachine({
 
 const rootClasses = computed(() => [
   'folder-attachment',
-  `folder-attachment--${props.orientation}`,
-  `folder-attachment--edge-${tabList.normalizedEdge.value}`,
-  `folder-attachment--density-${props.density}`,
-  `folder-attachment--appearance-${props.appearance}`,
-  `folder-attachment--expand-${props.expandOn}`,
-  `folder-attachment--activation-${props.activation}`,
-  `folder-attachment--gravity-${props.gravity}`,
+  `folder-attachment--${rootOrientation.value}`,
+  hasMixedEdges.value
+    ? 'folder-attachment--mixed-edge'
+    : `folder-attachment--edge-${activeEdge.value}`,
+  `folder-attachment--active-edge-${activeEdge.value}`,
+  `folder-attachment--density-${normalizedDensity.value}`,
+  `folder-attachment--appearance-${normalizedAppearance.value}`,
+  `folder-attachment--expand-${normalizedExpandOn.value}`,
+  `folder-attachment--activation-${normalizedActivation.value}`,
+  `folder-attachment--gravity-${normalizedGravity.value}`,
   {
     'folder-attachment--hover-emulated': emulatedHoverKey.value !== null,
     'is-pulled': motion.isPulled.value,
   },
+  rootEdgeClassFlags.value,
 ]);
 
 const rootStyle = computed(() => ({
-  '--folder-motion-duration': `${Math.max(Math.round(props.pullDuration), 0)}ms`,
-  '--folder-motion-return-duration': `${Math.max(Math.round(props.returnDuration), 0)}ms`,
+  '--folder-motion-duration': `${effectivePullDuration.value}ms`,
+  '--folder-motion-return-duration': `${effectiveReturnDuration.value}ms`,
   '--folder-motion-ease': 'cubic-bezier(0.32, 0, 0.2, 1)',
+  '--folder-side-stack-reveal': `${Math.max(
+    getFolderMinimumVisibleGrabSize('left'),
+    getFolderMinimumVisibleGrabSize('right'),
+  )}px`,
 }));
 
 const tabMeasurements = computed(() => tabList.visibleTabs.value.map((tab) => (
   measurements.value[String(tab.key)] ?? folderFallbackTabMeasurement
 )));
 
-const expandedSlotIndexes = computed(() => tabList.visibleTabs.value.flatMap((tab, index) => (
-  props.expandOn === 'always' || isTabOpen(tab) || isHovered(tab)
-    ? [index]
-    : []
-)));
+const folderLayouts = computed<Record<string, FolderLayout>>(() => {
+  const layouts: Record<string, FolderLayout> = {};
 
-const slotPositions = computed(() => getFolderStackSlots({
-  activeIndex: activeIndex.value,
-  appearance: props.appearance,
-  density: props.density,
-  expandedIndexes: expandedSlotIndexes.value,
-  measurements: tabMeasurements.value,
-  orientation: props.orientation,
-}));
+  for (const edge of folderEdges) {
+    const edgeTabs = tabList.visibleTabs.value
+      .map((tab, index) => ({ index, tab }))
+      .filter(({ tab }) => getTabEdge(tab) === edge);
+
+    if (edgeTabs.length === 0) {
+      continue;
+    }
+
+    const orientation = getFolderTabOrientationForEdge(edge);
+    const activeEdgeIndex = edgeTabs.findIndex(({ tab }) => tabList.isActive(tab));
+    const normalizedActiveIndex = Math.max(activeEdgeIndex, 0);
+    const slots = getFolderStackSlots({
+      activeIndex: normalizedActiveIndex,
+      appearance: normalizedAppearance.value,
+      density: normalizedDensity.value,
+      expandedIndexes: edgeTabs.flatMap(({ tab }, index) => (isTabExpanded(tab) ? [index] : [])),
+      measurements: edgeTabs.map(({ index }) => tabMeasurements.value[index] ?? folderFallbackTabMeasurement),
+      orientation,
+    });
+
+    edgeTabs.forEach(({ tab }, index) => {
+      layouts[String(tab.key)] = {
+        activeIndex: normalizedActiveIndex,
+        edge,
+        index,
+        orientation,
+        slot: slots[index] ?? 0,
+      };
+    });
+  }
+
+  return layouts;
+});
+
+const restingStackOrder = computed(() => {
+  const orderedKeys = tabList.visibleTabs.value.map((tab) => String(tab.key));
+
+  for (const key of selectionHistory.value) {
+    const currentIndex = orderedKeys.indexOf(key);
+
+    if (currentIndex === -1) {
+      continue;
+    }
+
+    orderedKeys.splice(currentIndex, 1);
+    orderedKeys.push(key);
+  }
+
+  return orderedKeys;
+});
+
+const restingStackIndexes = computed<Record<string, number>>(() => (
+  restingStackOrder.value.reduce<Record<string, number>>((indexes, key, index) => {
+    indexes[key] = index;
+    return indexes;
+  }, {})
+));
+
+const restingZIndexes = computed<Record<string, number>>(() => (
+  restingStackOrder.value.reduce<Record<string, number>>((zIndexes, key, index) => {
+    zIndexes[key] = folderPieceZ.restingBase + index;
+    return zIndexes;
+  }, {})
+));
+
+const activeRestingStackIndex = computed(() => {
+  const activeKey = tabList.activeKey.value;
+
+  if (!activeKey) {
+    return Math.max(restingStackOrder.value.length - 1, 0);
+  }
+
+  return restingStackIndexes.value[activeKey] ?? Math.max(restingStackOrder.value.length - 1, 0);
+});
+
+watch(
+  [tabList.activeKey, () => tabList.visibleTabs.value.map((tab) => String(tab.key)).join('\u0000')],
+  syncSelectionHistory,
+  { immediate: true },
+);
+
+watch(
+  () => tabList.visibleTabs.value.map((tab) => String(tab.key)).join('\u0000'),
+  pruneTabState,
+);
 
 onMounted(() => {
+  isUnmounted = false;
   scheduleMeasure();
   window.addEventListener('resize', scheduleMeasure);
 });
@@ -157,9 +322,8 @@ onUpdated(() => {
 });
 
 onBeforeUnmount(() => {
-  if (measureFrame !== null) {
-    window.cancelAnimationFrame(measureFrame);
-  }
+  isUnmounted = true;
+  cancelMeasureFrame();
 
   window.removeEventListener('resize', scheduleMeasure);
 });
@@ -189,14 +353,26 @@ function setMeasurementRef(
 }
 
 function scheduleMeasure(): void {
-  if (measureFrame !== null) {
+  if (isUnmounted || measureFrame !== null) {
     return;
   }
 
   measureFrame = window.requestAnimationFrame(() => {
     measureFrame = null;
+
+    if (isUnmounted) {
+      return;
+    }
+
     measureTabs();
   });
+}
+
+function cancelMeasureFrame(): void {
+  if (measureFrame !== null) {
+    window.cancelAnimationFrame(measureFrame);
+    measureFrame = null;
+  }
 }
 
 function measureTabs(): void {
@@ -231,20 +407,39 @@ function readElementSize(element: HTMLButtonElement | undefined): { blockSize: n
   const rect = element.getBoundingClientRect();
 
   return {
-    blockSize: rect.height || element.scrollHeight || folderFallbackTabMeasurement.compactBlockSize,
-    inlineSize: rect.width || element.scrollWidth || folderFallbackTabMeasurement.compactInlineSize,
+    blockSize: readMeasuredSize(
+      rect.height,
+      readMeasuredSize(element.scrollHeight, folderFallbackTabMeasurement.compactBlockSize),
+    ),
+    inlineSize: readMeasuredSize(
+      rect.width,
+      readMeasuredSize(element.scrollWidth, folderFallbackTabMeasurement.compactInlineSize),
+    ),
   };
 }
 
+function readMeasuredSize(value: number, fallback: number): number {
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
 function handleKeydown(event: KeyboardEvent, tab: FolderTabItem): void {
+  if (isFolderTabDisabled(tab)) {
+    return;
+  }
+
   const nextKey = tabList.getKeyboardTarget(event, tab);
 
   if (nextKey !== null) {
     event.preventDefault();
     event.stopPropagation();
+
+    if (String(nextKey) === String(tab.key)) {
+      return;
+    }
+
     tabList.focusTab(nextKey);
 
-    if (props.activation === 'automatic') {
+    if (normalizedActivation.value === 'automatic') {
       const nextTab = tabList.visibleTabs.value.find((candidate) => String(candidate.key) === String(nextKey));
 
       if (nextTab) {
@@ -255,7 +450,7 @@ function handleKeydown(event: KeyboardEvent, tab: FolderTabItem): void {
     return;
   }
 
-  if (props.activation === 'manual' && (event.key === 'Enter' || event.key === ' ')) {
+  if (normalizedActivation.value === 'manual' && (event.key === 'Enter' || event.key === ' ')) {
     event.preventDefault();
     event.stopPropagation();
     motion.selectFolder(tab);
@@ -263,15 +458,35 @@ function handleKeydown(event: KeyboardEvent, tab: FolderTabItem): void {
 }
 
 function isTabOpen(tab: FolderTabItem): boolean {
-  return motion.isPulledKey(tab.key) || motion.isPullingKey(tab.key);
+  return motion.isPulledKey(tab.key) || motion.isPullingKey(tab.key) || motion.isHandoffKey(tab.key);
+}
+
+function isTabExpanded(tab: FolderTabItem): boolean {
+  return normalizedExpandOn.value === 'always'
+    || isTabOpen(tab)
+    || (normalizedExpandOn.value === 'active' && tabList.isActive(tab))
+    || (normalizedExpandOn.value === 'hover' && isHovered(tab))
+    || (normalizedExpandOn.value === 'focus' && isFocused(tab));
 }
 
 function isReturning(tab: FolderTabItem): boolean {
   return motion.isReturningKey(tab.key);
 }
 
+function isTucked(tab: FolderTabItem): boolean {
+  return !tabList.isActive(tab)
+    && !motion.isSelectingKey(tab.key)
+    && !motion.isPullingKey(tab.key)
+    && !motion.isPulledKey(tab.key)
+    && !isReturning(tab);
+}
+
 function isHovered(tab: FolderTabItem): boolean {
-  return !tabList.isActive(tab) && effectiveHoverKey.value === String(tab.key) && !tab.disabled;
+  return !tabList.isActive(tab) && effectiveHoverKey.value === String(tab.key) && !isFolderTabDisabled(tab);
+}
+
+function isFocused(tab: FolderTabItem): boolean {
+  return !tabList.isActive(tab) && focusedKey.value === String(tab.key) && !isFolderTabDisabled(tab);
 }
 
 function isEmulatedHovered(tab: FolderTabItem): boolean {
@@ -279,91 +494,235 @@ function isEmulatedHovered(tab: FolderTabItem): boolean {
 }
 
 function folderTone(tab: FolderTabItem): FolderTone {
-  return tab.tone ?? props.tone;
+  return normalizeFolderTone(tab.tone ?? normalizedTone.value);
 }
 
 function folderClasses(tab: FolderTabItem): Array<string | Record<string, boolean>> {
+  const layout = getFolderLayout(tab);
+
   return [
     'folder-attachment__folder',
+    `folder-attachment__folder--${layout.orientation}`,
+    `folder-attachment__folder--edge-${layout.edge}`,
     {
       'is-active': tabList.isActive(tab),
-      'is-disabled': Boolean(tab.disabled),
+      'is-disabled': isFolderTabDisabled(tab),
+      'is-expanded': isTabExpanded(tab),
       'is-open': isTabOpen(tab),
       'is-pulled': motion.isPulledKey(tab.key),
       'is-pulling': motion.isPullingKey(tab.key),
       'is-returning': isReturning(tab),
       'is-selecting': motion.isSelectingKey(tab.key),
+      'is-handoff': motion.isHandoffKey(tab.key),
+      'is-tucked': isTucked(tab),
       'is-hovered': isHovered(tab),
+      'is-focused': isFocused(tab),
       'folder-attachment__folder--hover-emulated': isEmulatedHovered(tab),
     },
   ];
 }
 
 function folderStyle(tab: FolderTabItem, index: number): Record<string, string | number> {
-  const restOffset = getFolderPieceTuckOffset(tabList.normalizedEdge.value, index, activeIndex.value, props.density);
-  const hoverOffset = getFolderHoverOffset(tabList.normalizedEdge.value);
-  const pullOffset = getFolderPullOffset(tabList.normalizedEdge.value);
+  const layout = getFolderLayout(tab);
+  const restingStackIndex = restingStackIndexes.value[String(tab.key)] ?? layout.index;
+  const restOffset = getFolderPieceTuckOffset(
+    layout.edge,
+    restingStackIndex,
+    activeRestingStackIndex.value,
+    normalizedDensity.value,
+  );
+  const hoverOffset = getFolderHoverOffset(layout.edge);
+  const pullOffset = getFolderPullOffset(layout.edge);
   const zIndex = getPieceZIndex(tab, index);
+  const measurement = measurements.value[String(tab.key)] ?? folderFallbackTabMeasurement;
+  const compactSize = getCompactSize(measurement, layout.orientation);
+  const isActive = tabList.isActive(tab);
+  const actualOffset = getFolderActualOffset(tab, isActive, restOffset, pullOffset);
+  const tuckedDistance = isActive ? 0 : Math.max(Math.abs(restOffset.x), Math.abs(restOffset.y));
+  const coverDistance = isActive ? 0 : getActiveFolderCoverDistance(layout.edge);
+  const minimumVisibleGrabSize = getFolderMinimumVisibleGrabSize(layout.edge);
+  const minimumGrabSize = isActive
+    ? compactSize
+    : getFolderMinimumGrabSize(compactSize, minimumVisibleGrabSize);
+  const reachSize = getFolderTabReachSize(compactSize, tuckedDistance, minimumGrabSize, coverDistance);
+  const grabSize = compactSize;
 
   return {
     '--folder-piece-index': index,
-    '--folder-piece-slot': `${(slotPositions.value[index] ?? 0).toFixed(2)}px`,
+    '--folder-piece-slot': `${layout.slot.toFixed(2)}px`,
+    '--folder-piece-x': `${actualOffset.x.toFixed(2)}px`,
+    '--folder-piece-y': `${actualOffset.y.toFixed(2)}px`,
     '--folder-piece-rest-x': `${restOffset.x.toFixed(2)}px`,
     '--folder-piece-rest-y': `${restOffset.y.toFixed(2)}px`,
-    '--folder-piece-hover-x': `${hoverOffset.x.toFixed(2)}px`,
-    '--folder-piece-hover-y': `${hoverOffset.y.toFixed(2)}px`,
+    '--folder-tab-hover-x': `${hoverOffset.x.toFixed(2)}px`,
+    '--folder-tab-hover-y': `${hoverOffset.y.toFixed(2)}px`,
     '--folder-piece-pull-x': `${pullOffset.x.toFixed(2)}px`,
     '--folder-piece-pull-y': `${pullOffset.y.toFixed(2)}px`,
+    '--folder-attached-tab-grab-size': `${grabSize.toFixed(2)}px`,
+    '--folder-attached-tab-reach-size': `${reachSize.toFixed(2)}px`,
     '--folder-piece-z': zIndex,
   };
 }
 
+function getFolderActualOffset(
+  tab: FolderTabItem,
+  isActive: boolean,
+  restOffset: { x: number; y: number },
+  pullOffset: { x: number; y: number },
+): { x: number; y: number } {
+  if (
+    motion.isSelectingKey(tab.key)
+    || motion.isPullingKey(tab.key)
+    || motion.isPulledKey(tab.key)
+  ) {
+    return pullOffset;
+  }
+
+  if (isActive) {
+    return { x: 0, y: 0 };
+  }
+
+  return restOffset;
+}
+
 function tabStyle(tab: FolderTabItem): Record<string, string | number> {
+  const layout = getFolderLayout(tab);
   const measurement = measurements.value[String(tab.key)] ?? folderFallbackTabMeasurement;
-  const compactSize = getCompactSize(measurement, props.orientation);
+  const compactSize = getCompactSize(measurement, layout.orientation);
   const openSize = Math.max(measurement.openInlineSize, compactSize);
 
   return {
+    '--folder-tab-slot': `${layout.slot.toFixed(2)}px`,
     '--folder-attached-tab-compact-size': `${compactSize.toFixed(2)}px`,
     '--folder-attached-tab-open-size': `${openSize.toFixed(2)}px`,
   };
 }
 
+function getFolderLayout(tab: FolderTabItem): FolderLayout {
+  return folderLayouts.value[String(tab.key)] ?? {
+    activeIndex: activeIndex.value,
+    edge: tabList.normalizedEdge.value,
+    index: tabList.visibleTabs.value.findIndex((candidate) => String(candidate.key) === String(tab.key)),
+    orientation: tabList.normalizedOrientation.value,
+    slot: 0,
+  };
+}
+
+function getTabEdge(tab: FolderTabItem): FolderTabEdge {
+  return normalizeFolderTabEdge(tab.edge ?? props.edge, tabList.normalizedOrientation.value);
+}
+
+function getActiveFolderCoverDistance(edge: FolderTabEdge): number {
+  const active = activeTab.value;
+
+  if (!active) {
+    return 0;
+  }
+
+  const edgeVector = getFolderEdgeVector(edge);
+  const activePull = getFolderPullOffset(getTabEdge(active));
+  const projectedCover = (activePull.x * edgeVector.x) + (activePull.y * edgeVector.y);
+
+  return Math.max(projectedCover, 0);
+}
+
 function getPieceZIndex(tab: FolderTabItem, index: number): number {
+  if (motion.isFrontKey(tab.key)) {
+    return folderPieceZ.front;
+  }
+
   if (motion.isSelectingKey(tab.key)) {
-    return 280;
+    return folderPieceZ.selecting;
   }
 
   if (motion.isPullingKey(tab.key)) {
-    return 270;
+    return folderPieceZ.pulling;
   }
 
   if (motion.isPulledKey(tab.key)) {
-    return 260;
+    return folderPieceZ.pulled;
   }
 
   if (isReturning(tab)) {
-    return 240;
+    return folderPieceZ.returning;
   }
 
   if (tabList.isActive(tab)) {
-    return 250;
+    return folderPieceZ.active;
   }
 
-  if (isHovered(tab)) {
-    return 180;
+  return restingZIndexes.value[String(tab.key)] ?? folderPieceZ.restingBase + index;
+}
+
+function syncSelectionHistory(): void {
+  const visibleKeys = new Set(tabList.visibleTabs.value.map((tab) => String(tab.key)));
+  const activeKey = tabList.activeKey.value;
+  const nextHistory = selectionHistory.value.filter((key) => visibleKeys.has(key));
+
+  if (activeKey && visibleKeys.has(activeKey)) {
+    const existingIndex = nextHistory.indexOf(activeKey);
+
+    if (existingIndex !== -1) {
+      nextHistory.splice(existingIndex, 1);
+    }
+
+    nextHistory.push(activeKey);
   }
 
-  return 40 + index;
+  if (nextHistory.join('\u0000') !== selectionHistory.value.join('\u0000')) {
+    selectionHistory.value = nextHistory;
+  }
+}
+
+function pruneTabState(): void {
+  const visibleKeys = new Set(tabList.visibleTabs.value.map((tab) => String(tab.key)));
+
+  pruneTransientKeys(visibleKeys);
+  pruneMeasurementState(visibleKeys);
+}
+
+function pruneTransientKeys(visibleKeys: Set<string>): void {
+  if (hoveredKey.value && !visibleKeys.has(hoveredKey.value)) {
+    hoveredKey.value = null;
+  }
+
+  if (focusedKey.value && !visibleKeys.has(focusedKey.value)) {
+    focusedKey.value = null;
+  }
+}
+
+function pruneMeasurementState(visibleKeys: Set<string>): void {
+  for (const key of measurementRefs.keys()) {
+    if (!visibleKeys.has(key)) {
+      measurementRefs.delete(key);
+    }
+  }
+
+  let prunedMeasurements: Record<string, FolderTabMeasurement> | null = null;
+
+  for (const key of Object.keys(measurements.value)) {
+    if (!visibleKeys.has(key)) {
+      prunedMeasurements ??= { ...measurements.value };
+      delete prunedMeasurements[key];
+    }
+  }
+
+  if (prunedMeasurements) {
+    measurements.value = prunedMeasurements;
+  }
 }
 
 function selectFolder(tab: FolderTabItem): void {
+  if (isFolderTabDisabled(tab)) {
+    return;
+  }
+
   tabList.focusedKey.value = String(tab.key);
   motion.selectFolder(tab);
 }
 
 function setHoveredTab(tab: FolderTabItem): void {
-  if (!tab.disabled) {
+  if (!isFolderTabDisabled(tab)) {
     hoveredKey.value = String(tab.key);
   }
 }
@@ -374,9 +733,17 @@ function clearHoveredTab(tab: FolderTabItem): void {
   }
 }
 
-nextTick(() => {
-  scheduleMeasure();
-});
+function setFocusedTab(tab: FolderTabItem): void {
+  if (!isFolderTabDisabled(tab)) {
+    focusedKey.value = String(tab.key);
+  }
+}
+
+function clearFocusedTab(tab: FolderTabItem): void {
+  if (focusedKey.value === String(tab.key)) {
+    focusedKey.value = null;
+  }
+}
 </script>
 
 <template>
@@ -384,18 +751,18 @@ nextTick(() => {
     <FolderBinder
       class="folder-attachment__binder"
       :style="rootStyle"
-      :orientation="props.orientation"
-      :edge="tabList.normalizedEdge.value"
-      :depth="props.depth"
+      :orientation="binderOrientation"
+      :edge="activeEdge"
+      :depth="normalizedDepth"
       :layers="props.layers"
       :active-index="activeIndex"
-      :tone="props.tone"
+      :tone="normalizedTone"
       :pulled="motion.isPulled.value"
     >
       <div
         class="folder-attachment__stack"
         role="tablist"
-        :aria-orientation="props.orientation"
+        :aria-orientation="tabListAriaOrientation"
         :aria-label="props.ariaLabel"
       >
         <Folder
@@ -411,32 +778,37 @@ nextTick(() => {
             class="folder-attachment__tab"
             :class="{
               'is-active': tabList.isActive(tab),
-              'is-disabled': tab.disabled,
+              'is-disabled': isFolderTabDisabled(tab),
               'is-open': isTabOpen(tab),
+              'is-expanded': isTabExpanded(tab),
               'is-pulled': motion.isPulledKey(tab.key),
               'is-pulling': motion.isPullingKey(tab.key),
               'is-returning': isReturning(tab),
               'is-selecting': motion.isSelectingKey(tab.key),
+              'is-handoff': motion.isHandoffKey(tab.key),
               'is-hovered': isHovered(tab),
+              'is-focused': isFocused(tab),
               'folder-attachment__tab--hover-emulated': isEmulatedHovered(tab),
+              'folder-attachment__tab--has-total': hasLimitedFolderTabTotal(tab),
             }"
             :style="tabStyle(tab)"
+            :id="tabList.tabId(tab)"
             role="tab"
             :aria-selected="tabList.isActive(tab)"
             :aria-controls="tabList.panelId(tab)"
             :aria-label="tabList.tabAriaLabel(tab)"
-            :aria-disabled="tab.disabled || undefined"
+            :aria-disabled="isFolderTabDisabled(tab) || undefined"
             :tabindex="tabList.isTabbable(tab) ? 0 : -1"
             @click="selectFolder(tab)"
-            @blur="clearHoveredTab(tab)"
-            @focus="setHoveredTab(tab)"
+            @blur="clearFocusedTab(tab)"
+            @focus="setFocusedTab(tab)"
             @keydown="handleKeydown($event, tab)"
             @pointerenter="setHoveredTab(tab)"
             @pointerleave="clearHoveredTab(tab)"
           >
             <span class="folder-attachment__tab-icon" aria-hidden="true">
               <slot name="icon" :tab="tab" :active="tabList.isActive(tab)">
-                <component :is="tab.icon" v-if="tab.icon" />
+                <component :is="getFolderTabIcon(tab)" v-if="hasFolderTabIcon(tab)" />
               </slot>
             </span>
             <span class="folder-attachment__tab-label">{{ tabList.getFolderTabDisplayLabel(tab) }}</span>
@@ -444,23 +816,29 @@ nextTick(() => {
               {{ tabList.getFolderTabCountLabel(tab) }}
             </span>
             <span v-if="hasLimitedFolderTabTotal(tab)" class="folder-attachment__tab-lock" aria-hidden="true">
-              /{{ tab.totalCount }}
+              /{{ tabList.getFolderTabTotalCountLabel(tab) }}
             </span>
           </button>
 
           <div
-            v-if="tabList.isActive(tab)"
             :id="tabList.panelId(tab)"
             :class="['folder-attachment__content', props.folderClass]"
             role="tabpanel"
+            :aria-labelledby="tabList.tabId(tab)"
+            :hidden="!tabList.isActive(tab)"
           >
-            <slot :active-tab="activeTab" :active-index="activeIndex" :pulled="motion.isPulled.value" />
+            <slot
+              v-if="tabList.isActive(tab)"
+              :active-tab="activeTab"
+              :active-index="activeIndex"
+              :pulled="motion.isPulled.value"
+            />
           </div>
         </Folder>
       </div>
     </FolderBinder>
 
-    <div class="folder-attachment__measurer" aria-hidden="true">
+    <div class="folder-attachment__measurer" aria-hidden="true" inert>
       <template v-for="tab in tabList.visibleTabs.value" :key="tab.key">
         <button
           :ref="(element) => setMeasurementRef(tab.key, 'compact', element)"
@@ -469,7 +847,7 @@ nextTick(() => {
           tabindex="-1"
         >
           <span class="folder-attachment__tab-icon" aria-hidden="true">
-            <component :is="tab.icon" v-if="tab.icon" />
+            <component :is="getFolderTabIcon(tab)" v-if="hasFolderTabIcon(tab)" />
           </span>
         </button>
 
@@ -480,14 +858,14 @@ nextTick(() => {
           tabindex="-1"
         >
           <span class="folder-attachment__tab-icon" aria-hidden="true">
-            <component :is="tab.icon" v-if="tab.icon" />
+            <component :is="getFolderTabIcon(tab)" v-if="hasFolderTabIcon(tab)" />
           </span>
           <span class="folder-attachment__tab-label">{{ tabList.getFolderTabDisplayLabel(tab) }}</span>
           <span v-if="hasFolderTabCount(tab)" class="folder-attachment__tab-count">
             {{ tabList.getFolderTabCountLabel(tab) }}
           </span>
           <span v-if="hasLimitedFolderTabTotal(tab)" class="folder-attachment__tab-lock" aria-hidden="true">
-            /{{ tab.totalCount }}
+            /{{ tabList.getFolderTabTotalCountLabel(tab) }}
           </span>
         </button>
       </template>

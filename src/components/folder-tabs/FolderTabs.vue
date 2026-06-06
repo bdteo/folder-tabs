@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch, type ComponentPublicInstance } from 'vue';
+import { computed, onBeforeUnmount, onMounted, onUpdated, ref, useId, watch, type ComponentPublicInstance } from 'vue';
 import {
-  getFolderTabAccessibleLabel,
-  getFolderTabCountLabel,
-  getFolderTabDisplayLabel,
-  getFolderTabNavigationTarget,
+  getFolderTabIcon,
+  hasFolderTabIcon,
   hasFolderTabCount,
   hasLimitedFolderTabTotal,
-  normalizeFolderTabEdge,
-  normalizeFolderTabs,
+  isFolderTabDisabled,
+  normalizeFolderMotionDuration,
+  normalizeFolderTabActivation,
+  normalizeFolderTabAppearance,
+  normalizeFolderTabDensity,
+  normalizeFolderTabExpandOn,
+  normalizeFolderTabGravity,
+  normalizeFolderTabKeyForLookup,
   type FolderTabActivation,
   type FolderTabAppearance,
   type FolderTabDensity,
@@ -19,6 +23,7 @@ import {
   type FolderTabKey,
   type FolderTabOrientation,
 } from './folderTabs';
+import { useFolderTabList } from './useFolderTabList';
 
 const props = withDefaults(defineProps<{
   tabs: FolderTabItem[];
@@ -53,78 +58,80 @@ const emit = defineEmits<{
   activate: [key: FolderTabKey, tab: FolderTabItem];
 }>();
 
-const tabRefs = new Map<string, HTMLButtonElement>();
-const focusedKey = ref<string | null>(null);
+const tabsId = useId();
+const tabList = useFolderTabList(props, {
+  generatePanelIds: false,
+  idBase: `folder-tabs-${tabsId}`,
+});
 const grabbingKey = ref<string | null>(null);
 const recedingKey = ref<string | null>(null);
+type MeasurementSlot = 'label' | 'count';
+type MeasurementRefs = Partial<Record<MeasurementSlot, HTMLElement>>;
+type RailTabMeasurement = {
+  countInlineSize: number;
+  labelInlineSize: number;
+};
+
+const fallbackLabelInlineSize = 88;
+const fallbackCountInlineSize = 28;
+const measurementRefs = new Map<string, MeasurementRefs>();
+const measurements = ref<Record<string, RailTabMeasurement>>({});
 let activationMotionTimer: ReturnType<typeof window.setTimeout> | null = null;
+let measureFrame: number | null = null;
+let isUnmounted = false;
 
-const visibleTabs = computed(() => normalizeFolderTabs(props.tabs));
-const activeKey = computed(() => props.modelValue === null || props.modelValue === undefined ? null : String(props.modelValue));
-const normalizedEdge = computed(() => normalizeFolderTabEdge(props.edge, props.orientation));
-
-const focusableTabs = computed(() => visibleTabs.value.filter((tab) => !tab.disabled));
-
-const fallbackFocusableKey = computed(() => {
-  const activeFocusable = focusableTabs.value.find((tab) => String(tab.key) === activeKey.value);
-  return String(activeFocusable?.key ?? focusableTabs.value[0]?.key ?? '');
-});
-
-const tabbableKey = computed(() => focusedKey.value || fallbackFocusableKey.value);
+const normalizedActivation = computed(() => normalizeFolderTabActivation(props.activation));
+const normalizedAppearance = computed(() => normalizeFolderTabAppearance(props.appearance));
+const normalizedDensity = computed(() => normalizeFolderTabDensity(props.density));
+const normalizedExpandOn = computed(() => normalizeFolderTabExpandOn(props.expandOn));
+const normalizedGravity = computed(() => normalizeFolderTabGravity(props.gravity));
 
 const rootClasses = computed(() => [
   'folder-tabs',
-  `folder-tabs--${props.orientation}`,
-  `folder-tabs--edge-${normalizedEdge.value}`,
-  `folder-tabs--density-${props.density}`,
-  `folder-tabs--activation-${props.activation}`,
-  `folder-tabs--expand-${props.expandOn}`,
-  `folder-tabs--gravity-${props.gravity}`,
-  `folder-tabs--appearance-${props.appearance}`,
+  `folder-tabs--${tabList.normalizedOrientation.value}`,
+  `folder-tabs--edge-${tabList.normalizedEdge.value}`,
+  `folder-tabs--density-${normalizedDensity.value}`,
+  `folder-tabs--activation-${normalizedActivation.value}`,
+  `folder-tabs--expand-${normalizedExpandOn.value}`,
+  `folder-tabs--gravity-${normalizedGravity.value}`,
+  `folder-tabs--appearance-${normalizedAppearance.value}`,
 ]);
 
-watch(activeKey, (key) => {
-  if (key) {
-    focusedKey.value = key;
-  }
-}, { immediate: true });
+watch(
+  () => tabList.visibleTabs.value.map((tab) => String(tab.key)).join('\u0000'),
+  pruneTabState,
+);
 
 onBeforeUnmount(() => {
-  if (activationMotionTimer !== null) {
-    window.clearTimeout(activationMotionTimer);
-  }
+  isUnmounted = true;
+  clearActivationMotionTimer();
+  cancelMeasureFrame();
+
+  window.removeEventListener('resize', scheduleMeasure);
 });
 
-function setTabRef(key: FolderTabKey, element: Element | ComponentPublicInstance | null): void {
-  const normalizedKey = String(key);
+onMounted(() => {
+  isUnmounted = false;
+  scheduleMeasure();
+  window.addEventListener('resize', scheduleMeasure);
+});
 
-  if (element instanceof HTMLButtonElement) {
-    tabRefs.set(normalizedKey, element);
-    return;
-  }
-
-  tabRefs.delete(normalizedKey);
-}
-
-function focusTab(key: FolderTabKey | null): void {
-  if (key === null) {
-    return;
-  }
-
-  focusedKey.value = String(key);
-
-  nextTick(() => {
-    tabRefs.get(String(key))?.focus();
-  });
-}
+onUpdated(() => {
+  scheduleMeasure();
+});
 
 function activateTab(tab: FolderTabItem): void {
-  if (tab.disabled) {
+  if (isFolderTabDisabled(tab)) {
+    return;
+  }
+
+  if (normalizeFolderTabKeyForLookup(props.modelValue) === String(tab.key) && tabList.isActive(tab)) {
+    tabList.focusedKey.value = String(tab.key);
     return;
   }
 
   startActivationMotion(tab.key);
-  focusedKey.value = String(tab.key);
+  tabList.focusedKey.value = String(tab.key);
   emit('update:modelValue', tab.key);
   emit('activate', tab.key, tab);
 }
@@ -132,45 +139,67 @@ function activateTab(tab: FolderTabItem): void {
 function startActivationMotion(key: FolderTabKey): void {
   const nextKey = String(key);
 
-  if (activationMotionTimer !== null) {
-    window.clearTimeout(activationMotionTimer);
-  }
+  clearActivationMotionTimer();
 
   grabbingKey.value = nextKey;
-  recedingKey.value = activeKey.value && activeKey.value !== nextKey ? activeKey.value : null;
+  recedingKey.value = tabList.activeKey.value && tabList.activeKey.value !== nextKey
+    ? tabList.activeKey.value
+    : null;
   activationMotionTimer = window.setTimeout(() => {
     grabbingKey.value = null;
     recedingKey.value = null;
     activationMotionTimer = null;
-  }, props.activationMotionDuration);
+  }, normalizeFolderMotionDuration(props.activationMotionDuration));
+}
+
+function clearActivationMotionTimer(): void {
+  if (activationMotionTimer !== null) {
+    window.clearTimeout(activationMotionTimer);
+    activationMotionTimer = null;
+  }
 }
 
 function handleKeydown(event: KeyboardEvent, tab: FolderTabItem): void {
-  const nextKey = getFolderTabNavigationTarget(focusableTabs.value, tab.key, event.key);
-
-  if (nextKey === null) {
+  if (isFolderTabDisabled(tab)) {
     return;
   }
 
-  event.preventDefault();
-  event.stopPropagation();
-  focusTab(nextKey);
+  const nextKey = tabList.getKeyboardTarget(event, tab);
 
-  if (props.activation === 'automatic') {
-    const nextTab = visibleTabs.value.find((candidate) => String(candidate.key) === String(nextKey));
+  if (nextKey !== null) {
+    event.preventDefault();
+    event.stopPropagation();
 
-    if (nextTab) {
-      activateTab(nextTab);
+    if (String(nextKey) === String(tab.key)) {
+      return;
     }
+
+    tabList.focusTab(nextKey);
+
+    if (normalizedActivation.value === 'automatic') {
+      const nextTab = tabList.visibleTabs.value.find((candidate) => String(candidate.key) === String(nextKey));
+
+      if (nextTab) {
+        activateTab(nextTab);
+      }
+    }
+
+    return;
+  }
+
+  if (normalizedActivation.value === 'manual' && (event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault();
+    event.stopPropagation();
+    activateTab(tab);
   }
 }
 
 function isActive(tab: FolderTabItem): boolean {
-  return String(tab.key) === activeKey.value;
+  return tabList.isActive(tab);
 }
 
 function isTabbable(tab: FolderTabItem): boolean {
-  return !tab.disabled && String(tab.key) === tabbableKey.value;
+  return tabList.isTabbable(tab);
 }
 
 function isGrabbing(tab: FolderTabItem): boolean {
@@ -178,28 +207,79 @@ function isGrabbing(tab: FolderTabItem): boolean {
 }
 
 function isPulled(tab: FolderTabItem): boolean {
-  return props.pulledKey !== null
-    && props.pulledKey !== undefined
-    && String(tab.key) === String(props.pulledKey);
+  const pulledKey = normalizeFolderTabKeyForLookup(props.pulledKey);
+
+  return !isFolderTabDisabled(tab)
+    && pulledKey !== null
+    && String(tab.key) === pulledKey;
 }
 
 function isReceding(tab: FolderTabItem): boolean {
   return String(tab.key) === recedingKey.value;
 }
 
+function pruneTabState(): void {
+  const visibleKeys = new Set(tabList.visibleTabs.value.map((tab) => String(tab.key)));
+
+  pruneTransientKeys(visibleKeys);
+  pruneMeasurementState(visibleKeys);
+}
+
+function pruneTransientKeys(visibleKeys: Set<string>): void {
+  const removedGrabbingKey = Boolean(grabbingKey.value && !visibleKeys.has(grabbingKey.value));
+  const removedRecedingKey = Boolean(recedingKey.value && !visibleKeys.has(recedingKey.value));
+
+  if (removedGrabbingKey) {
+    grabbingKey.value = null;
+  }
+
+  if (removedGrabbingKey || removedRecedingKey) {
+    recedingKey.value = null;
+  }
+
+  if (removedGrabbingKey && recedingKey.value === null) {
+    clearActivationMotionTimer();
+  }
+}
+
+function pruneMeasurementState(visibleKeys: Set<string>): void {
+  for (const key of measurementRefs.keys()) {
+    if (!visibleKeys.has(key)) {
+      measurementRefs.delete(key);
+    }
+  }
+
+  let prunedMeasurements: Record<string, RailTabMeasurement> | null = null;
+
+  for (const key of Object.keys(measurements.value)) {
+    if (!visibleKeys.has(key)) {
+      prunedMeasurements ??= { ...measurements.value };
+      delete prunedMeasurements[key];
+    }
+  }
+
+  if (prunedMeasurements) {
+    measurements.value = prunedMeasurements;
+  }
+}
+
 function tabStyle(tab: FolderTabItem, index: number): Record<string, string | number> {
-  const labelLength = Array.from(getFolderTabDisplayLabel(tab)).length;
-  const countLength = Array.from(getFolderTabCountLabel(tab)).length;
-  const activeIndex = visibleTabs.value.findIndex((candidate) => String(candidate.key) === activeKey.value);
+  const measurement = measurements.value[String(tab.key)] ?? {
+    countInlineSize: hasFolderTabCount(tab) ? fallbackCountInlineSize : 0,
+    labelInlineSize: fallbackLabelInlineSize,
+  };
+  const activeIndex = tabList.visibleTabs.value.findIndex((candidate) => String(candidate.key) === tabList.activeKey.value);
   const stackDistance = activeIndex === -1 ? index : Math.abs(index - activeIndex);
   const stackOffset = Math.min(stackDistance, 8) * 0.2;
   const stackHoverOffset = Math.max(stackOffset - 0.1, 0);
 
   return {
     '--folder-tab-index': index,
-    '--folder-tab-total': visibleTabs.value.length,
-    '--folder-tab-label-size': `${Math.max(labelLength + 2, 7)}ch`,
-    '--folder-tab-count-size': countLength > 0 ? `${countLength + 1}ch` : '0ch',
+    '--folder-tab-total': tabList.visibleTabs.value.length,
+    '--folder-tab-label-size': `${measurement.labelInlineSize.toFixed(2)}px`,
+    '--folder-tab-count-size': hasFolderTabCount(tab)
+      ? `${measurement.countInlineSize.toFixed(2)}px`
+      : '0px',
     '--folder-tab-lock-size': hasLimitedFolderTabTotal(tab) ? '1rem' : '0rem',
     '--folder-tab-stack-left-offset': `-${stackOffset.toFixed(2)}rem`,
     '--folder-tab-stack-left-hover-offset': `-${stackHoverOffset.toFixed(2)}rem`,
@@ -208,15 +288,87 @@ function tabStyle(tab: FolderTabItem, index: number): Record<string, string | nu
   };
 }
 
-function panelId(tab: FolderTabItem): string | undefined {
-  return props.panelIdForTab?.(tab) || tab.panelId;
+function setMeasurementRef(
+  key: FolderTabKey,
+  slot: MeasurementSlot,
+  element: Element | ComponentPublicInstance | null,
+): void {
+  const normalizedKey = String(key);
+  const existing = measurementRefs.get(normalizedKey) ?? {};
+
+  if (element instanceof HTMLElement) {
+    existing[slot] = element;
+    measurementRefs.set(normalizedKey, existing);
+    return;
+  }
+
+  delete existing[slot];
+
+  if (existing.label || existing.count) {
+    measurementRefs.set(normalizedKey, existing);
+    return;
+  }
+
+  measurementRefs.delete(normalizedKey);
 }
 
-function tabAriaLabel(tab: FolderTabItem): string {
-  const label = getFolderTabAccessibleLabel(tab);
-  const count = getFolderTabCountLabel(tab);
+function scheduleMeasure(): void {
+  if (isUnmounted || measureFrame !== null) {
+    return;
+  }
 
-  return count ? `${label}, ${count}` : label;
+  measureFrame = window.requestAnimationFrame(() => {
+    measureFrame = null;
+
+    if (isUnmounted) {
+      return;
+    }
+
+    measureTabs();
+  });
+}
+
+function cancelMeasureFrame(): void {
+  if (measureFrame !== null) {
+    window.cancelAnimationFrame(measureFrame);
+    measureFrame = null;
+  }
+}
+
+function measureTabs(): void {
+  const nextMeasurements: Record<string, RailTabMeasurement> = {};
+
+  for (const tab of tabList.visibleTabs.value) {
+    const key = String(tab.key);
+    const refs = measurementRefs.get(key);
+
+    nextMeasurements[key] = {
+      countInlineSize: hasFolderTabCount(tab)
+        ? readInlineSize(refs?.count, fallbackCountInlineSize)
+        : 0,
+      labelInlineSize: readInlineSize(refs?.label, fallbackLabelInlineSize),
+    };
+  }
+
+  if (JSON.stringify(measurements.value) !== JSON.stringify(nextMeasurements)) {
+    measurements.value = nextMeasurements;
+  }
+}
+
+function readInlineSize(element: HTMLElement | undefined, fallback: number): number {
+  if (!element) {
+    return fallback;
+  }
+
+  const rect = element.getBoundingClientRect();
+
+  return Math.ceil(
+    readMeasuredSize(element.scrollWidth, readMeasuredSize(rect.width, fallback)),
+  );
+}
+
+function readMeasuredSize(value: number, fallback: number): number {
+  return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 </script>
 
@@ -224,40 +376,50 @@ function tabAriaLabel(tab: FolderTabItem): string {
   <div
     :class="rootClasses"
     role="tablist"
-    :aria-orientation="orientation"
-    :aria-label="ariaLabel"
+    :aria-orientation="tabList.normalizedOrientation.value"
+    :aria-label="props.ariaLabel"
   >
     <button
-      v-for="(tab, tabIndex) in visibleTabs"
+      v-for="(tab, tabIndex) in tabList.visibleTabs.value"
       :key="tab.key"
-      :ref="(element) => setTabRef(tab.key, element)"
+      :ref="(element) => tabList.setTabRef(tab.key, element)"
       type="button"
       class="folder-tabs__tab"
       :class="{
         'is-active': isActive(tab),
-        'is-disabled': tab.disabled,
+        'is-disabled': isFolderTabDisabled(tab),
         'is-grabbing': isGrabbing(tab),
         'is-pulled': isPulled(tab),
         'is-receding': isReceding(tab),
       }"
       :style="tabStyle(tab, tabIndex)"
+      :id="tabList.tabId(tab)"
       role="tab"
       :aria-selected="isActive(tab)"
-      :aria-controls="panelId(tab)"
-      :aria-label="tabAriaLabel(tab)"
-      :aria-disabled="tab.disabled || undefined"
+      :aria-controls="tabList.panelId(tab)"
+      :aria-label="tabList.tabAriaLabel(tab)"
+      :aria-disabled="isFolderTabDisabled(tab) || undefined"
       :tabindex="isTabbable(tab) ? 0 : -1"
       @click="activateTab(tab)"
       @keydown="handleKeydown($event, tab)"
     >
       <span class="folder-tabs__icon" aria-hidden="true">
         <slot name="icon" :tab="tab" :active="isActive(tab)">
-          <component :is="tab.icon" v-if="tab.icon" />
+          <component :is="getFolderTabIcon(tab)" v-if="hasFolderTabIcon(tab)" />
         </slot>
       </span>
-      <span class="folder-tabs__label">{{ getFolderTabDisplayLabel(tab) }}</span>
-      <span v-if="hasFolderTabCount(tab)" class="folder-tabs__count">
-        {{ getFolderTabCountLabel(tab) }}
+      <span
+        :ref="(element) => setMeasurementRef(tab.key, 'label', element)"
+        class="folder-tabs__label"
+      >
+        {{ tabList.getFolderTabDisplayLabel(tab) }}
+      </span>
+      <span
+        v-if="hasFolderTabCount(tab)"
+        :ref="(element) => setMeasurementRef(tab.key, 'count', element)"
+        class="folder-tabs__count"
+      >
+        {{ tabList.getFolderTabCountLabel(tab) }}
       </span>
       <svg
         v-if="hasLimitedFolderTabTotal(tab)"

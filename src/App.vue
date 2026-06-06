@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, ref } from 'vue';
-import { FolderAttachment, type FolderTabItem } from './components/folder-tabs';
+import { FolderAttachment, FolderTabs, type FolderTabItem } from './components/folder-tabs';
 
 const icon = (name: string, children: ReturnType<typeof h>[]) => defineComponent({
   name,
@@ -69,18 +69,58 @@ const compactTabs: FolderTabItem[] = [
   { key: 'maps', label: 'Maps and plans', shortLabel: 'Maps', tone: 'violet', icon: Icons.compass, count: 4 },
 ];
 
-const horizontalActive = ref('evidence');
-const verticalActive = ref('signals');
-const compactActive = ref('photos');
-const rightEdgeActive = ref('intake');
+const chessTabs: FolderTabItem[] = caseTabs.map((tab, index) => ({
+  ...tab,
+  edge: index % 2 === 0 ? 'left' : 'right',
+}));
+
+const cornerTabs: FolderTabItem[] = [
+  { ...compactTabs[0], edge: 'bottom' },
+  { ...compactTabs[1], edge: 'right' },
+  { ...compactTabs[2], edge: 'bottom' },
+  { ...caseTabs[4], edge: 'right' },
+];
+
 const demoParams = new URLSearchParams(window.location.search);
+
+function demoActiveKey(
+  demoTabs: FolderTabItem[],
+  paramName: string,
+  fallbackKey: string,
+): string {
+  const requestedKey = demoParams.get(paramName);
+
+  if (!requestedKey) {
+    return fallbackKey;
+  }
+
+  return demoTabs.some((tab) => !tab.disabled && String(tab.key) === requestedKey)
+    ? requestedKey
+    : fallbackKey;
+}
+
+const horizontalActive = ref(demoActiveKey(caseTabs, 'activeTop', 'evidence'));
+const standaloneActive = ref(demoActiveKey(caseTabs, 'activeStandalone', 'strategy'));
+const standaloneSideActive = ref(demoActiveKey(caseTabs, 'activeStandaloneSide', 'review'));
+const verticalActive = ref(demoActiveKey(caseTabs, 'activeLeft', 'signals'));
+const compactActive = ref(demoActiveKey(compactTabs, 'activeBottom', 'photos'));
+const rightEdgeActive = ref(demoActiveKey(caseTabs, 'activeRight', 'intake'));
+const chessActive = ref(demoActiveKey(chessTabs, 'activeChess', 'strategy'));
+const cornerActive = ref(demoActiveKey(cornerTabs, 'activeCorner', 'photos'));
 const topHoverKey = ref(demoParams.get('hoverTop') ?? demoParams.get('hover'));
 const leftHoverKey = ref(demoParams.get('hoverLeft') ?? demoParams.get('hover'));
 const bottomHoverKey = ref(demoParams.get('hoverBottom') ?? demoParams.get('hover'));
 const rightHoverKey = ref(demoParams.get('hoverRight') ?? demoParams.get('hover'));
+const chessHoverKey = ref(demoParams.get('hoverChess') ?? demoParams.get('hover'));
+const cornerHoverKey = ref(demoParams.get('hoverCorner') ?? demoParams.get('hover'));
 
 const activeCase = computed(() => caseTabs.find((tab) => tab.key === horizontalActive.value));
+const activeStandalone = computed(() => caseTabs.find((tab) => tab.key === standaloneActive.value));
+const activeStandaloneSide = computed(() => caseTabs.find((tab) => tab.key === standaloneSideActive.value));
 const activeVertical = computed(() => caseTabs.find((tab) => tab.key === verticalActive.value));
+const activeCompact = computed(() => compactTabs.find((tab) => tab.key === compactActive.value));
+const activeChess = computed(() => chessTabs.find((tab) => tab.key === chessActive.value));
+const activeCorner = computed(() => cornerTabs.find((tab) => tab.key === cornerActive.value));
 </script>
 
 <template>
@@ -89,15 +129,62 @@ const activeVertical = computed(() => caseTabs.find((tab) => tab.key === vertica
       <p class="demo-kicker">Vue copy-in primitive</p>
       <h1>FolderTabs</h1>
       <p class="demo-lede">
-        Tactile index tabs with physical overlap, orientation-aware labels,
+        Tactile index tabs with physical depth, orientation-aware labels,
         roving focus, and compact resting states.
       </p>
+    </section>
+
+    <section class="demo-rail-lab" aria-label="Standalone FolderTabs rail demos">
+      <div class="demo-rail-copy">
+        <p class="demo-kicker">Standalone rail</p>
+        <h2>Measured tab geometry</h2>
+        <p>
+          The rail-only component keeps the accessible tablist behavior while
+          sizing opened labels from the rendered text itself.
+        </p>
+      </div>
+
+      <div class="demo-rail-samples">
+        <div class="demo-rail-track">
+          <FolderTabs
+            v-model="standaloneActive"
+            :tabs="caseTabs"
+            :pulled-key="standaloneActive"
+            ariaLabel="Standalone horizontal folder rail"
+            orientation="horizontal"
+            edge="top"
+            appearance="stack"
+            expand-on="hover"
+          />
+          <div class="demo-rail-readout" aria-live="polite">
+            <span>{{ activeStandalone?.shortLabel }}</span>
+            <strong>{{ activeStandalone?.count }} notes</strong>
+          </div>
+        </div>
+
+        <div class="demo-rail-side">
+          <FolderTabs
+            v-model="standaloneSideActive"
+            :tabs="caseTabs"
+            :pulled-key="standaloneSideActive"
+            ariaLabel="Standalone right folder rail"
+            orientation="vertical"
+            edge="right"
+            appearance="stack"
+            expand-on="hover"
+          />
+          <div class="demo-rail-readout demo-rail-readout--side" aria-live="polite">
+            <span>{{ activeStandaloneSide?.shortLabel }}</span>
+            <strong>{{ activeStandaloneSide?.count }} notes</strong>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="demo-board" aria-label="FolderTabs component demos">
       <FolderAttachment
         v-model="horizontalActive"
-        class="demo-stage demo-stage--wide"
+        class="demo-stage demo-stage--top"
         folder-class="demo-file"
         :tabs="caseTabs"
         ariaLabel="Case file sections"
@@ -133,7 +220,6 @@ const activeVertical = computed(() => caseTabs.find((tab) => tab.key === vertica
         ariaLabel="Vertical case file sections"
         orientation="vertical"
         edge="left"
-        density="overlap"
         gravity="center"
         appearance="stack"
         expand-on="hover"
@@ -169,12 +255,25 @@ const activeVertical = computed(() => caseTabs.find((tab) => tab.key === vertica
         :layers="1"
         :emulated-hover-key="bottomHoverKey"
       >
-        <div class="demo-photo__grid" aria-hidden="true">
-          <i />
-          <i />
-          <i />
+        <div class="demo-photo__copy">
+          <p class="demo-file__eyebrow">Bottom folder</p>
+          <h2>{{ activeCompact?.shortLabel }} contact sheet</h2>
+          <p>
+            Exterior references, floor-plan scraps, and map captures collected
+            into one quick-review media sleeve.
+          </p>
         </div>
-        <span>Bottom tabs pull the media folder downward</span>
+        <div class="demo-photo__contact-sheet" aria-hidden="true">
+          <i class="demo-photo__shot demo-photo__shot--large"><span>front</span></i>
+          <i class="demo-photo__shot"><span>yard</span></i>
+          <i class="demo-photo__shot"><span>entry</span></i>
+          <i class="demo-photo__shot"><span>roof</span></i>
+          <i class="demo-photo__shot demo-photo__shot--wide"><span>street</span></i>
+        </div>
+        <div class="demo-photo__meta" aria-hidden="true">
+          <span>{{ activeCompact?.countLabel ?? activeCompact?.count }} selected</span>
+          <span>3 marked for review</span>
+        </div>
       </FolderAttachment>
 
       <FolderAttachment
@@ -185,7 +284,6 @@ const activeVertical = computed(() => caseTabs.find((tab) => tab.key === vertica
         ariaLabel="Right edge sections"
         orientation="vertical"
         edge="right"
-        density="dense"
         appearance="stack"
         expand-on="focus"
         activation="manual"
@@ -208,6 +306,77 @@ const activeVertical = computed(() => caseTabs.find((tab) => tab.key === vertica
           <span>owner review</span>
           <span>stack mirrors right</span>
           <span>manual focus mode</span>
+        </div>
+      </FolderAttachment>
+    </section>
+
+    <section class="demo-combo-board" aria-label="Mixed edge FolderTabs demos">
+      <div class="demo-combo-copy">
+        <p class="demo-kicker">Mixed edge binder</p>
+        <h2>Chessboard tab indexes</h2>
+        <p>
+          One binder can assign each folder to its own edge, so alternating
+          left/right or bottom/right tags still pull their matching folder as
+          one piece.
+        </p>
+      </div>
+
+      <FolderAttachment
+        v-model="chessActive"
+        class="demo-stage demo-stage--chess"
+        folder-class="demo-dossier demo-dossier--chess"
+        :tabs="chessTabs"
+        ariaLabel="Chessboard case file sections"
+        orientation="vertical"
+        edge="left"
+        appearance="stack"
+        expand-on="hover"
+        depth="deep"
+        tone="teal"
+        :layers="2"
+        :emulated-hover-key="chessHoverKey"
+      >
+        <p class="demo-file__eyebrow">Left plus right</p>
+        <h2>{{ activeChess?.shortLabel }}</h2>
+        <p>
+          Alternating side tabs give the binder a physical index pattern
+          without splitting the folder stack into separate components.
+        </p>
+        <div class="demo-signal-strip" aria-hidden="true">
+          <span>{{ activeChess?.count }} active notes</span>
+          <span>mirrored side index</span>
+          <span>single tablist</span>
+        </div>
+      </FolderAttachment>
+
+      <FolderAttachment
+        v-model="cornerActive"
+        class="demo-stage demo-stage--corner"
+        folder-class="demo-photo demo-photo--corner"
+        :tabs="cornerTabs"
+        ariaLabel="Corner media file sections"
+        orientation="horizontal"
+        edge="bottom"
+        appearance="stack"
+        expand-on="hover"
+        depth="raised"
+        tone="moss"
+        :layers="1"
+        :emulated-hover-key="cornerHoverKey"
+      >
+        <div class="demo-photo__copy">
+          <p class="demo-file__eyebrow">Bottom plus right</p>
+          <h2>{{ activeCorner?.shortLabel }} corner file</h2>
+          <p>
+            Bottom tags and right-side tags share the same physical binder
+            while keeping their own edge direction.
+          </p>
+        </div>
+        <div class="demo-corner-grid" aria-hidden="true">
+          <span>survey</span>
+          <span>photos</span>
+          <span>plans</span>
+          <span>review</span>
         </div>
       </FolderAttachment>
     </section>

@@ -58,6 +58,11 @@
       "target": "components/ui/folder-tabs/folder-tabs.css"
     },
     {
+      "path": "css.d.ts",
+      "type": "registry:lib",
+      "target": "components/ui/folder-tabs/css.d.ts"
+    },
+    {
       "path": "index.ts",
       "type": "registry:lib",
       "target": "components/ui/folder-tabs/index.ts"
