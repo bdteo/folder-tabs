@@ -991,17 +991,57 @@
 
   grid-area: 1 / 1;
   inset: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   z-index: var(--folder-piece-z);
   overflow: visible;
-  transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));
+  transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px);
   transition:
-    box-shadow var(--folder-motion-duration) var(--folder-motion-ease),
     filter var(--folder-motion-duration) ease,
     transform var(--folder-motion-duration) var(--folder-motion-ease);
 }
 
+.folder-attachment--stack-rotation-pieces .folder-attachment__folder {
+  transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));
+}
+
 .folder-attachment__folder::before {
   display: none;
+}
+
+.folder-attachment__sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 1px solid var(--folder-border);
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--folder-tint) 18%, transparent), transparent 22rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 40%),
+    var(--folder-surface);
+  box-shadow: var(--folder-shadow);
+  pointer-events: none;
+  transform: rotate(0deg);
+  transform-origin: inherit;
+  transition:
+    box-shadow var(--folder-motion-duration) ease,
+    filter var(--folder-motion-duration) ease,
+    transform var(--folder-motion-duration) var(--folder-motion-ease);
+}
+
+.folder-attachment__sheet::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0.65rem;
+  inset-block-start: 0;
+  block-size: 1px;
+  background: color-mix(in srgb, var(--folder-accent) 34%, transparent);
+  opacity: 0.56;
+  pointer-events: none;
+}
+
+.folder-attachment--stack-rotation-folders .folder-attachment__sheet {
+  transform: rotate(var(--folder-piece-rotate));
 }
 
 .folder-attachment__folder:not(.is-active) {
@@ -1012,7 +1052,7 @@
   pointer-events: auto;
 }
 
-.folder-attachment__folder.is-tucked {
+.folder-attachment__folder.is-tucked .folder-attachment__sheet {
   border-color: color-mix(in srgb, var(--folder-border) 74%, transparent);
   background:
     radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--folder-tint) 12%, transparent), transparent 17rem),
@@ -1021,7 +1061,7 @@
   box-shadow: var(--folder-tucked-shadow);
 }
 
-.folder-attachment__folder.is-tucked::before {
+.folder-attachment__folder.is-tucked .folder-attachment__sheet::before {
   opacity: 0.28;
 }
 
@@ -1045,22 +1085,30 @@
 .folder-attachment__folder.is-pulling,
 .folder-attachment__folder.is-pulled {
   filter: brightness(1.06) saturate(1.08);
+}
+
+.folder-attachment__folder.is-selecting .folder-attachment__sheet,
+.folder-attachment__folder.is-pulling .folder-attachment__sheet,
+.folder-attachment__folder.is-pulled .folder-attachment__sheet {
   box-shadow:
     var(--folder-pulled-shadow),
     0 0 0 1px color-mix(in srgb, var(--folder-accent) 22%, transparent);
 }
 
 .folder-attachment__folder.is-selecting,
+.folder-attachment__folder.is-selecting .folder-attachment__sheet,
 .folder-attachment__folder.is-selecting .folder-attachment__tab {
   transition-duration: 0ms;
 }
 
 .folder-attachment__folder.is-active.is-pulled,
+.folder-attachment__folder.is-active.is-pulled .folder-attachment__sheet,
 .folder-attachment__folder.is-active.is-pulled .folder-attachment__tab {
   transition-duration: 0ms;
 }
 
 .folder-attachment__folder.is-handoff,
+.folder-attachment__folder.is-handoff .folder-attachment__sheet,
 .folder-attachment__folder.is-handoff .folder-attachment__tab {
   transition-duration: 0ms;
 }
@@ -1069,6 +1117,7 @@
   transition-duration: var(--folder-motion-return-duration);
 }
 
+.folder-attachment__folder.is-returning .folder-attachment__sheet,
 .folder-attachment__folder.is-returning .folder-attachment__tab {
   transition-duration: var(--folder-motion-return-duration);
 }
@@ -1127,11 +1176,11 @@
   padding-inline-end: var(--folder-side-tab-outset);
 }
 
-.folder-attachment--edge-left .folder-attachment__folder.is-active {
+.folder-attachment--edge-left .folder-attachment__folder.is-active .folder-attachment__sheet {
   border-inline-start-color: transparent;
 }
 
-.folder-attachment--edge-right .folder-attachment__folder.is-active {
+.folder-attachment--edge-right .folder-attachment__folder.is-active .folder-attachment__sheet {
   border-inline-end-color: transparent;
 }
 
@@ -1155,11 +1204,11 @@
   transform-origin: 50% 100%;
 }
 
-.folder-attachment--mixed-edge .folder-attachment__folder--edge-left.is-active {
+.folder-attachment--mixed-edge .folder-attachment__folder--edge-left.is-active .folder-attachment__sheet {
   border-inline-start-color: transparent;
 }
 
-.folder-attachment--mixed-edge .folder-attachment__folder--edge-right.is-active {
+.folder-attachment--mixed-edge .folder-attachment__folder--edge-right.is-active .folder-attachment__sheet {
   border-inline-end-color: transparent;
 }
 
@@ -1595,6 +1644,7 @@
   .folder-tab-panel-stack::before,
   .folder-tab-panel-stack::after,
   .folder-attachment__folder,
+  .folder-attachment__sheet,
   .folder-attachment__tab,
   .folder-attachment__tab-icon,
   .folder-attachment__tab-label,
@@ -1611,6 +1661,7 @@
   .folder-tab-panel-stack::before,
   .folder-tab-panel-stack::after,
   .folder-attachment__folder,
+  .folder-attachment__sheet,
   .folder-attachment__tab,
   .folder-attachment__tab-icon,
   .folder-attachment__tab-label,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, ref } from 'vue';
-import { FolderAttachment, FolderTabs, type FolderTabItem } from './components/folder-tabs';
+import { FolderAttachment, FolderTabs, type FolderStackRotation, type FolderTabItem } from './components/folder-tabs';
 
 const icon = (name: string, children: ReturnType<typeof h>[]) => defineComponent({
   name,
@@ -207,6 +207,17 @@ const workbenchHoverKey = ref(demoHoverKey([
   'hoverBottom',
   'hover',
 ]));
+const stackRotationModes: Array<{ key: FolderStackRotation; label: string }> = [
+  { key: 'none', label: 'Straight' },
+  { key: 'folders', label: 'Folder sheets' },
+  { key: 'pieces', label: 'Whole pieces' },
+];
+const rotationModeParam = getDemoParam(['stackRotation', 'rotation']);
+const stackRotationMode = ref<FolderStackRotation>(
+  rotationModeParam === 'none' || rotationModeParam === 'folders' || rotationModeParam === 'pieces'
+    ? rotationModeParam
+    : 'folders',
+);
 
 const activePrimary = computed(() => primaryTabs.find((tab) => String(tab.key) === primaryActive.value) ?? null);
 const activeWorkbench = computed(() => workbenchTabs.find((tab) => String(tab.key) === workbenchActive.value) ?? null);
@@ -244,8 +255,20 @@ const workbenchCaption = computed(() => {
         </p>
         <div class="demo-proofline" aria-hidden="true">
           <span>split lanes</span>
-          <span>tucked tilt</span>
+          <span>surface tilt</span>
           <span>roving focus</span>
+        </div>
+        <div class="demo-mode-switch" aria-label="Stack rotation mode">
+          <button
+            v-for="mode in stackRotationModes"
+            :key="mode.key"
+            type="button"
+            :class="{ 'is-active': stackRotationMode === mode.key }"
+            :aria-pressed="stackRotationMode === mode.key"
+            @click="stackRotationMode = mode.key"
+          >
+            {{ mode.label }}
+          </button>
         </div>
       </div>
 
@@ -261,7 +284,7 @@ const workbenchCaption = computed(() => {
         expand-on="hover"
         depth="deep"
         tone="slate"
-        tucked-tilt
+        :stack-rotation="stackRotationMode"
         :layers="2"
         :emulated-hover-key="primaryHoverKey"
       >
@@ -320,7 +343,7 @@ const workbenchCaption = computed(() => {
           expand-on="hover"
           depth="deep"
           tone="teal"
-          tucked-tilt
+          :stack-rotation="stackRotationMode"
           :layers="2"
           :emulated-hover-key="workbenchHoverKey"
         >

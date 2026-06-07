@@ -12,6 +12,7 @@ export type FolderTabAppearance = 'rail' | 'stack';
 export type FolderBinderDepth = 'flat' | 'subtle' | 'raised' | 'deep';
 export type FolderTabPanelStackDepth = FolderBinderDepth;
 export type FolderTone = 'slate' | 'moss' | 'teal' | 'copper' | 'violet';
+export type FolderStackRotation = 'none' | 'folders' | 'pieces';
 
 export interface FolderTabItem {
   key: FolderTabKey;
@@ -39,6 +40,7 @@ const folderTabGravities = new Set<FolderTabGravity>(['start', 'center', 'end'])
 const folderTabAppearances = new Set<FolderTabAppearance>(['rail', 'stack']);
 const folderBinderDepths = new Set<FolderBinderDepth>(['flat', 'subtle', 'raised', 'deep']);
 const folderTones = new Set<FolderTone>(['slate', 'moss', 'teal', 'copper', 'violet']);
+const folderStackRotations = new Set<FolderStackRotation>(['none', 'folders', 'pieces']);
 
 export function normalizeFolderTabs(tabs: unknown): FolderTabItem[] {
   if (!Array.isArray(tabs)) {
@@ -261,6 +263,12 @@ export function normalizeFolderTone(tone: unknown): FolderTone {
   return folderTones.has(tone as FolderTone)
     ? tone as FolderTone
     : 'slate';
+}
+
+export function normalizeFolderStackRotation(rotation: unknown): FolderStackRotation {
+  return folderStackRotations.has(rotation as FolderStackRotation)
+    ? rotation as FolderStackRotation
+    : 'none';
 }
 
 export function getFolderTabDomId(

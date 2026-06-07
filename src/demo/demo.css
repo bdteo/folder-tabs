@@ -99,6 +99,44 @@ select {
   padding-block: 0.42rem;
 }
 
+.demo-mode-switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-inline-size: 100%;
+  margin-block-start: 0.25rem;
+  padding: 0.22rem;
+  border: 1px solid rgba(150, 207, 184, 0.22);
+  background: rgba(15, 18, 16, 0.34);
+}
+
+.demo-mode-switch button {
+  border: 0;
+  background: transparent;
+  color: rgba(247, 241, 231, 0.62);
+  cursor: pointer;
+  padding: 0.48rem 0.62rem;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.demo-mode-switch button:hover,
+.demo-mode-switch button:focus-visible,
+.demo-mode-switch button.is-active {
+  background: rgba(150, 207, 184, 0.14);
+  color: #fff8ec;
+}
+
+.demo-mode-switch button:focus-visible {
+  outline: 2px solid #d8ff72;
+  outline-offset: 2px;
+}
+
 .demo-stage {
   --ft-surface: #1f231f;
   --ft-surface-active: #2d302a;

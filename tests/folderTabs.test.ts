@@ -9,6 +9,7 @@ import {
   FolderTabs,
   getFolderMinimumVisibleGrabSize,
   getFolderVisibleGrabSize,
+  normalizeFolderStackRotation,
   type FolderTabItem,
   type FolderTabKey,
 } from '../src/components/folder-tabs';
@@ -364,15 +365,39 @@ describe('FolderTabs', () => {
     expect(folderTabsCss).toContain('--folder-piece-x: 0px;');
     expect(folderTabsCss).toContain('--folder-piece-y: 0px;');
     expect(folderTabsCss).toContain('--folder-piece-rotate: 0deg;');
-    expect(folderTabsCss).toContain('transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));');
+    expect(folderTabsCss).toContain([
+      '.folder-attachment__folder {',
+      '  --folder-attached-tab-border: var(--folder-border);',
+    ].join('\n'));
+    expect(folderTabsCss).toContain('transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px);');
+    expect(folderTabsCss).toContain([
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__folder {',
+      '  transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));',
+      '}',
+    ].join('\n'));
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-rest-x), var(--folder-piece-rest-y), 0px);');
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-pull-x), var(--folder-piece-pull-y), 0px);');
+  });
+
+  it('can rotate tucked folder sheets without rotating their tab handles', () => {
+    expect(folderTabsCss).toContain([
+      '.folder-attachment__sheet {',
+      '  position: absolute;',
+    ].join('\n'));
+    expect(folderTabsCss).toContain([
+      '.folder-attachment--stack-rotation-folders .folder-attachment__sheet {',
+      '  transform: rotate(var(--folder-piece-rotate));',
+      '}',
+    ].join('\n'));
+    expect(folderTabsCss).not.toContain('.folder-attachment--stack-rotation-folders .folder-attachment__tab {\n  transform: rotate(var(--folder-piece-rotate));');
+    expect(folderTabsCss).not.toContain('.folder-attachment--stack-rotation-folders .folder-attachment__folder {\n  transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));');
   });
 
   it('keeps active pulled folders visually pinned without waiting for motion', () => {
     expect(folderTabsCss).toContain('.folder-attachment__folder.is-active.is-pulled');
     expect(folderTabsCss).toContain([
       '.folder-attachment__folder.is-active.is-pulled,',
+      '.folder-attachment__folder.is-active.is-pulled .folder-attachment__sheet,',
       '.folder-attachment__folder.is-active.is-pulled .folder-attachment__tab {',
       '  transition-duration: 0ms;',
       '}',
@@ -382,6 +407,7 @@ describe('FolderTabs', () => {
   it('shows newly selected folders immediately while the outgoing folder returns', () => {
     expect(folderTabsCss).toContain([
       '.folder-attachment__folder.is-selecting,',
+      '.folder-attachment__folder.is-selecting .folder-attachment__sheet,',
       '.folder-attachment__folder.is-selecting .folder-attachment__tab {',
       '  transition-duration: 0ms;',
       '}',
@@ -3026,15 +3052,51 @@ describe('FolderTabs', () => {
         default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
       },
     });
+    const sheetTiltWrapper = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'plans',
+        ariaLabel: 'Sheet-tilted folders',
+        appearance: 'stack',
+        stackRotation: 'folders',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+    const pieceTiltWrapper = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'plans',
+        ariaLabel: 'Piece-tilted folders',
+        appearance: 'stack',
+        stackRotation: 'pieces',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
 
     await nextTick();
 
     expect(squareWrapper.classes()).not.toContain('folder-attachment--tucked-tilt');
+    expect(squareWrapper.classes()).toContain('folder-attachment--stack-rotation-none');
     expect(tiltedWrapper.classes()).toContain('folder-attachment--tucked-tilt');
+    expect(tiltedWrapper.classes()).toContain('folder-attachment--stack-rotation-pieces');
+    expect(sheetTiltWrapper.classes()).toContain('folder-attachment--tucked-tilt');
+    expect(sheetTiltWrapper.classes()).toContain('folder-attachment--stack-rotation-folders');
+    expect(pieceTiltWrapper.classes()).toContain('folder-attachment--stack-rotation-pieces');
     expect(folderPieceStyleNumber(squareWrapper, 0, '--folder-piece-rotate')).toBe(0);
     expect(folderPieceStyleNumber(tiltedWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
+    expect(folderPieceStyleNumber(sheetTiltWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
+    expect(folderPieceStyleNumber(pieceTiltWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
     expect(tiltedWrapper.find('.folder-attachment__folder.is-active').attributes('style'))
       .toContain('--folder-piece-rotate: 0.00deg');
+    expect(sheetTiltWrapper.find('.folder-attachment__folder.is-active').attributes('style'))
+      .toContain('--folder-piece-rotate: 0.00deg');
+    expect(normalizeFolderStackRotation('folders')).toBe('folders');
+    expect(normalizeFolderStackRotation('pieces')).toBe('pieces');
+    expect(normalizeFolderStackRotation('surprise')).toBe('none');
   });
 
   it('lets mixed-edge binders follow the active physical edge instead of the root flow axis', async () => {

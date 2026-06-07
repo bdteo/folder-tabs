@@ -32,7 +32,7 @@ Set `edge` on individual `FolderTabItem` objects when one attached binder should
 
 Set `gravity` on individual `FolderTabItem` objects when one physical edge should split into separate slot lanes, such as top tabs grouped on the left and right sides of the same folder. `start` and `end` groups get independent measured slots while sharing the same pull direction.
 
-Use `tuckedTilt` on `FolderAttachment` when tucked/background folders should get a small mirrored rotation, like files pushed back into a real binder. Active and pulled folders stay square.
+Use `stackRotation` on `FolderAttachment` when tucked/background folders should get a small mirrored rotation, like files pushed back into a real binder. `stackRotation="folders"` rotates only the folder sheets so tab handles stay straight; `stackRotation="pieces"` rotates the whole folder piece, including the tab. Active and pulled folders stay square. The legacy `tuckedTilt` boolean remains a shortcut for `stackRotation="pieces"` when `stackRotation` is omitted.
 
 Hover behaves like touching or listing through a real folder tab: only the handle tugs toward the tab edge, while clicking pulls the whole folder. Use `emulatedHoverKey` only as a visual QA hook. It applies BEM hover-emulation classes and the same handle tug and displacement geometry as real hover, while label/slot expansion still follows `expandOn`. That makes overlap bugs easier to reproduce without holding the pointer over a moving tab.
 

@@ -32,8 +32,10 @@ import {
   normalizeFolderTabGravity,
   normalizeFolderTabKeyForLookup,
   normalizeFolderMotionDuration,
+  normalizeFolderStackRotation,
   normalizeFolderTone,
   type FolderBinderDepth,
+  type FolderStackRotation,
   type FolderTabActivation,
   type FolderTabAppearance,
   type FolderTabDensity,
@@ -62,6 +64,7 @@ const props = withDefaults(defineProps<{
   depth?: FolderBinderDepth;
   layers?: number;
   tone?: FolderTone;
+  stackRotation?: FolderStackRotation | null;
   tuckedTilt?: boolean;
   pullDuration?: number;
   returnDuration?: number;
@@ -80,6 +83,7 @@ const props = withDefaults(defineProps<{
   depth: 'raised',
   layers: 2,
   tone: 'slate',
+  stackRotation: null,
   tuckedTilt: false,
   pullDuration: 420,
   emulatedHoverKey: null,
@@ -148,6 +152,11 @@ const normalizedDensity = computed(() => normalizeFolderTabDensity(props.density
 const normalizedDepth = computed(() => normalizeFolderBinderDepth(props.depth));
 const normalizedExpandOn = computed(() => normalizeFolderTabExpandOn(props.expandOn));
 const normalizedGravity = computed(() => normalizeFolderTabGravity(props.gravity));
+const normalizedStackRotation = computed(() => (
+  props.stackRotation === null || props.stackRotation === undefined
+    ? (props.tuckedTilt ? 'pieces' : 'none')
+    : normalizeFolderStackRotation(props.stackRotation)
+));
 const normalizedTone = computed(() => normalizeFolderTone(props.tone));
 const activeEdge = computed(() => activeTab.value
   ? getTabEdge(activeTab.value)
@@ -206,9 +215,10 @@ const rootClasses = computed(() => [
   `folder-attachment--expand-${normalizedExpandOn.value}`,
   `folder-attachment--activation-${normalizedActivation.value}`,
   `folder-attachment--gravity-${normalizedGravity.value}`,
+  `folder-attachment--stack-rotation-${normalizedStackRotation.value}`,
   {
     'folder-attachment--hover-emulated': emulatedHoverKey.value !== null,
-    'folder-attachment--tucked-tilt': props.tuckedTilt,
+    'folder-attachment--tucked-tilt': normalizedStackRotation.value !== 'none',
     'is-pulled': motion.isPulled.value,
   },
   rootEdgeClassFlags.value,
@@ -597,7 +607,7 @@ function getFolderPieceRotation(
   isActive: boolean,
 ): number {
   if (
-    !props.tuckedTilt
+    normalizedStackRotation.value === 'none'
     || isActive
     || motion.isSelectingKey(tab.key)
     || motion.isPullingKey(tab.key)
@@ -847,6 +857,8 @@ function clearFocusedTab(tab: FolderTabItem): void {
           :style="folderStyle(tab, tabIndex)"
           :tone="folderTone(tab)"
         >
+          <div class="folder-attachment__sheet" aria-hidden="true" />
+
           <button
             :ref="(element) => tabList.setTabRef(tab.key, element)"
             type="button"

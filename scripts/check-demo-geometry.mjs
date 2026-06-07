@@ -181,6 +181,29 @@ async function inspectDemoGeometry(client) {
 
       return { x: Number.NaN, y: Number.NaN };
     };
+    const parseRotation = (transform) => {
+      if (!transform || transform === 'none') {
+        return 0;
+      }
+
+      const matrix3dMatch = transform.match(/^matrix3d\\((.*)\\)$/);
+
+      if (matrix3dMatch) {
+        const values = matrix3dMatch[1].split(',').map((part) => Number.parseFloat(part.trim()));
+
+        return Math.atan2(values[1] || 0, values[0] || 1) * (180 / Math.PI);
+      }
+
+      const matrixMatch = transform.match(/^matrix\\((.*)\\)$/);
+
+      if (matrixMatch) {
+        const values = matrixMatch[1].split(',').map((part) => Number.parseFloat(part.trim()));
+
+        return Math.atan2(values[1] || 0, values[0] || 1) * (180 / Math.PI);
+      }
+
+      return Number.NaN;
+    };
     const parseZ = (folder) => {
       const value = folder.style.getPropertyValue('--folder-piece-z');
       const parsed = Number.parseFloat(value);
@@ -300,11 +323,51 @@ async function inspectDemoGeometry(client) {
       for (const folder of root.querySelectorAll('.folder-attachment__folder')) {
         const tab = folder.querySelector('.folder-attachment__tab');
         const icon = folder.querySelector('.folder-attachment__tab-icon');
+        const sheet = folder.querySelector('.folder-attachment__sheet');
         const edge = readEdge(folder);
         const isActive = folder.classList.contains('is-active');
         const isHovered = folder.classList.contains('is-hovered');
         const z = parseZ(folder);
         const label = tab?.textContent?.trim().replace(/\\s+/g, ' ') || '(unlabelled)';
+        const rootUsesFolderOnlyRotation = root.classList.contains('folder-attachment--stack-rotation-folders');
+
+        if (rootUsesFolderOnlyRotation && !isActive) {
+          if (!sheet || !tab) {
+            failures.push(\`\${rootClass} / \${label}: folder-only rotation is missing the sheet or tab layer\`);
+          } else {
+            const folderStyle = getComputedStyle(folder);
+            const sheetStyle = getComputedStyle(sheet);
+            const tabStyle = getComputedStyle(tab);
+            const expectedRotation = parsePx(folderStyle, '--folder-piece-rotate');
+            const folderRotation = parseRotation(folderStyle.transform);
+            const sheetRotation = parseRotation(sheetStyle.transform);
+            const tabRotation = parseRotation(tabStyle.transform);
+
+            measurements.push({
+              edge,
+              expectedRotation: round(expectedRotation),
+              folderRotation: round(folderRotation),
+              label,
+              root: rootClass,
+              sheetRotation: round(sheetRotation),
+              tabRotation: round(tabRotation),
+            });
+
+            if (Math.abs(expectedRotation) > 0.1) {
+              if (!Number.isFinite(folderRotation) || Math.abs(folderRotation) > 0.1) {
+                failures.push(\`\${rootClass} / \${label}: folder-only rotation leaked \${round(folderRotation)}deg onto the folder motion root\`);
+              }
+
+              if (!Number.isFinite(tabRotation) || Math.abs(tabRotation) > 0.1) {
+                failures.push(\`\${rootClass} / \${label}: folder-only rotation leaked \${round(tabRotation)}deg onto the tab handle\`);
+              }
+
+              if (!Number.isFinite(sheetRotation) || !closeEnough(sheetRotation, expectedRotation, 0.16)) {
+                failures.push(\`\${rootClass} / \${label}: sheet rotation \${round(sheetRotation)}deg does not match expected \${round(expectedRotation)}deg\`);
+              }
+            }
+          }
+        }
 
         if (folder !== activeFolder && z >= activeZ) {
           failures.push(\`\${rootClass} / \${label}: inactive z-index \${z} must stay below active \${activeZ}\`);
