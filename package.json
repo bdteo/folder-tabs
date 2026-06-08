@@ -50,6 +50,7 @@
     "scripts/check-demo-geometry.mjs",
     "scripts/check-demo-screenshots.mjs",
     "scripts/check-package-consumer.mjs",
+    "scripts/copy-package-assets.mjs",
     "scripts/capture-demo-screenshots.mjs",
     "scripts/demo-cdp-utils.mjs",
     "scripts/demo-screenshot-utils.mjs",
@@ -64,8 +65,8 @@
     "verify:demo": "node scripts/check-demo-geometry.mjs",
     "verify:package": "node scripts/check-package-consumer.mjs",
     "verify:screenshots": "node scripts/check-demo-screenshots.mjs",
-    "build": "vue-tsc --noEmit && vite build --config vite.lib.config.ts",
-    "build:demo": "vite build --outDir dist-demo",
+    "build": "vue-tsc --noEmit && vite build --config vite.lib.config.ts && node scripts/copy-package-assets.mjs",
+    "build:demo": "vite build --outDir dist-demo && node scripts/copy-package-assets.mjs dist-demo/assets/assets",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "vue-tsc --noEmit"

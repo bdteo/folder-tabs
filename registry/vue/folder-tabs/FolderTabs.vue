@@ -13,6 +13,12 @@ import {
   normalizeFolderTabExpandOn,
   normalizeFolderTabGravity,
   normalizeFolderTabKeyForLookup,
+  normalizeFolderSurfaceTextColor,
+  normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTexture,
+  type FolderSurfaceTextColor,
+  type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTexture,
   type FolderTabActivation,
   type FolderTabAppearance,
   type FolderTabDensity,
@@ -37,6 +43,9 @@ const props = withDefaults(defineProps<{
   appearance?: FolderTabAppearance;
   activationMotionDuration?: number;
   pulledKey?: FolderTabKey | null;
+  texture?: FolderSurfaceTexture;
+  textureBlendMode?: FolderSurfaceTextureBlendMode;
+  textColor?: FolderSurfaceTextColor;
   ariaLabel: string;
   panelIdForTab?: ((tab: FolderTabItem) => string | undefined) | null;
 }>(), {
@@ -50,6 +59,9 @@ const props = withDefaults(defineProps<{
   appearance: 'rail',
   activationMotionDuration: 420,
   pulledKey: null,
+  texture: 'none',
+  textureBlendMode: 'auto',
+  textColor: 'auto',
   panelIdForTab: null,
 });
 
@@ -85,6 +97,9 @@ const normalizedAppearance = computed(() => normalizeFolderTabAppearance(props.a
 const normalizedDensity = computed(() => normalizeFolderTabDensity(props.density));
 const normalizedExpandOn = computed(() => normalizeFolderTabExpandOn(props.expandOn));
 const normalizedGravity = computed(() => normalizeFolderTabGravity(props.gravity));
+const normalizedTexture = computed(() => normalizeFolderSurfaceTexture(props.texture));
+const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
+const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 
 const rootClasses = computed(() => [
   'folder-tabs',
@@ -95,6 +110,9 @@ const rootClasses = computed(() => [
   `folder-tabs--expand-${normalizedExpandOn.value}`,
   `folder-tabs--gravity-${normalizedGravity.value}`,
   `folder-tabs--appearance-${normalizedAppearance.value}`,
+  `folder-tabs--texture-${normalizedTexture.value}`,
+  `folder-tabs--texture-blend-${normalizedTextureBlendMode.value}`,
+  `folder-tabs--text-color-${normalizedTextColor.value}`,
 ]);
 
 watch(

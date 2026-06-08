@@ -9,7 +9,11 @@ import {
   FolderTabs,
   getFolderMinimumVisibleGrabSize,
   getFolderVisibleGrabSize,
+  normalizeFolderSurfaceTextColor,
+  normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTexture,
   normalizeFolderStackRotation,
+  normalizeFolderTabRotation,
   type FolderTabItem,
   type FolderTabKey,
 } from '../src/components/folder-tabs';
@@ -34,6 +38,11 @@ const registryFileModules = import.meta.glob('../registry/vue/folder-tabs/*', {
   eager: true,
   import: 'default',
   query: '?raw',
+});
+const registryInstallableFileModules = import.meta.glob('../registry/vue/folder-tabs/**/*', {
+  eager: true,
+  import: 'default',
+  query: '?url',
 });
 
 const Icon = defineComponent({
@@ -204,10 +213,12 @@ describe('FolderTabs', () => {
     expect(packageConsumerScript).toContain('throw new CommandFailure(result.status ?? 1);');
     expect(packageConsumerScript).toContain('const requiredPackedFiles = [');
     expect(packageConsumerScript).toContain('dist/folder-tabs.js');
+    expect(packageConsumerScript).toContain('dist/assets/paper/paper-watercolor-rough.jpg');
     expect(packageConsumerScript).toContain('docs/screenshots/demo-attached-desktop.png');
     expect(packageConsumerScript).toContain('docs/screenshots/demo-attached-mobile.png');
     expect(packageConsumerScript).toContain('docs/screenshots/demo-desktop.png');
     expect(packageConsumerScript).toContain('scripts/capture-demo-screenshots.mjs');
+    expect(packageConsumerScript).toContain('scripts/copy-package-assets.mjs');
     expect(packageConsumerScript).toContain('scripts/verify-all.mjs');
     expect(packageConsumerScript).toContain('const forbiddenPackedFiles = [');
     expect(packageConsumerScript).toContain('src/App.vue');
@@ -221,8 +232,8 @@ describe('FolderTabs', () => {
   it('keeps the registry manifest aligned with the copy-in files on disk', () => {
     const registryFiles = registryItem.files.map((file) => file.path);
     const registryTargets = registryItem.files.map((file) => file.target);
-    const installableFiles = Object.keys(registryFileModules)
-      .map((filePath) => filePath.split('/').pop() ?? '')
+    const installableFiles = Object.keys(registryInstallableFileModules)
+      .map((filePath) => filePath.replace('../registry/vue/folder-tabs/', ''))
       .filter((file) => file !== 'README.md' && file !== 'folder-tabs.json')
       .sort();
 
@@ -237,6 +248,8 @@ describe('FolderTabs', () => {
         expect(file.type).toBe('registry:ui');
       } else if (file.path.endsWith('.css')) {
         expect(file.type).toBe('registry:style');
+      } else if (file.path.endsWith('.png') || file.path.endsWith('.jpg')) {
+        expect(file.type).toBe('registry:file');
       } else {
         expect(file.type).toBe('registry:lib');
       }
@@ -316,7 +329,7 @@ describe('FolderTabs', () => {
     expect(demoCss).toContain([
       '.demo-folder p,',
       '.demo-section-copy p {',
-      '  color: #c9c2b6;',
+      '  color: var(--folder-ink-muted, #c9c2b6);',
       '  line-height: 1.6;',
       '  overflow-wrap: anywhere;',
       '}',
@@ -357,7 +370,9 @@ describe('FolderTabs', () => {
   it('keeps hover motion on the tab handle instead of the folder sheet', () => {
     expect(folderTabsCss).toContain('.folder-attachment__folder:not(.is-active).is-hovered .folder-attachment__tab');
     expect(folderTabsCss).toContain('.folder-attachment__folder:not(.is-active).is-focused .folder-attachment__tab');
-    expect(folderTabsCss).toContain('transform: translate3d(var(--folder-tab-hover-x), var(--folder-tab-hover-y), 0px);');
+    expect(folderTabsCss).toContain('--folder-tab-transform-x: var(--folder-tab-hover-x);');
+    expect(folderTabsCss).toContain('--folder-tab-transform-y: var(--folder-tab-hover-y);');
+    expect(folderTabsCss).toContain('transform: translate3d(var(--folder-tab-transform-x), var(--folder-tab-transform-y), 0px) rotate(var(--folder-tab-rotate));');
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-hover-x), var(--folder-piece-hover-y), 0px);');
   });
 
@@ -365,6 +380,9 @@ describe('FolderTabs', () => {
     expect(folderTabsCss).toContain('--folder-piece-x: 0px;');
     expect(folderTabsCss).toContain('--folder-piece-y: 0px;');
     expect(folderTabsCss).toContain('--folder-piece-rotate: 0deg;');
+    expect(folderTabsCss).toContain('--folder-tab-transform-x: 0px;');
+    expect(folderTabsCss).toContain('--folder-tab-transform-y: 0px;');
+    expect(folderTabsCss).toContain('--folder-tab-rotate: 0deg;');
     expect(folderTabsCss).toContain([
       '.folder-attachment__folder {',
       '  --folder-attached-tab-border: var(--folder-border);',
@@ -379,7 +397,7 @@ describe('FolderTabs', () => {
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-pull-x), var(--folder-piece-pull-y), 0px);');
   });
 
-  it('can rotate tucked folder sheets without rotating their tab handles', () => {
+  it('can rotate tucked folder sheets and tab handles independently', () => {
     expect(folderTabsCss).toContain([
       '.folder-attachment__sheet {',
       '  position: absolute;',
@@ -389,8 +407,31 @@ describe('FolderTabs', () => {
       '  transform: rotate(var(--folder-piece-rotate));',
       '}',
     ].join('\n'));
-    expect(folderTabsCss).not.toContain('.folder-attachment--stack-rotation-folders .folder-attachment__tab {\n  transform: rotate(var(--folder-piece-rotate));');
+    expect(folderTabsCss).toContain([
+      '.folder-attachment--stack-rotation-folders.folder-attachment--tab-rotation-rotated .folder-attachment__folder:not(.is-active) {',
+      '  --folder-tab-rotate: var(--folder-tab-piece-rotate);',
+      '}',
+    ].join('\n'));
+    expect(folderTabsCss).toContain([
+      '.folder-attachment--stack-rotation-pieces.folder-attachment--tab-rotation-straight .folder-attachment__folder:not(.is-active) {',
+      '  --folder-tab-rotate: var(--folder-tab-counter-rotate);',
+      '}',
+    ].join('\n'));
     expect(folderTabsCss).not.toContain('.folder-attachment--stack-rotation-folders .folder-attachment__folder {\n  transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));');
+  });
+
+  it('removes attached tab borders when whole physical pieces rotate', () => {
+    expect(folderTabsCss).toContain([
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab,',
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab:hover,',
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab:focus-visible,',
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-active,',
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-expanded,',
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-hovered,',
+      '.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-open {',
+      '  border-color: transparent;',
+      '}',
+    ].join('\n'));
   });
 
   it('keeps active pulled folders visually pinned without waiting for motion', () => {
@@ -1280,6 +1321,9 @@ describe('FolderTabs', () => {
         expandOn: 'touch',
         gravity: 'middle',
         appearance: 'accordion',
+        texture: 'linen',
+        textureBlendMode: 'smudge',
+        textColor: 'invisible',
       } as any,
     });
 
@@ -1290,6 +1334,9 @@ describe('FolderTabs', () => {
     expect(rail.classes()).toContain('folder-tabs--expand-hover');
     expect(rail.classes()).toContain('folder-tabs--gravity-center');
     expect(rail.classes()).toContain('folder-tabs--appearance-rail');
+    expect(rail.classes()).toContain('folder-tabs--texture-none');
+    expect(rail.classes()).toContain('folder-tabs--texture-blend-auto');
+    expect(rail.classes()).toContain('folder-tabs--text-color-auto');
     expect(rail.classes().some((className) => className.includes('diagonal') || className.includes('corner'))).toBe(false);
     expect(rail.attributes('aria-orientation')).toBe('horizontal');
 
@@ -1310,6 +1357,10 @@ describe('FolderTabs', () => {
         appearance: 'accordion',
         depth: 'sunken',
         tone: 'neon',
+        texture: 'linen',
+        textureBlendMode: 'smudge',
+        textColor: 'invisible',
+        tabRotation: 'sideways',
         layers: Number.NaN,
       } as any,
       slots: {
@@ -1324,10 +1375,20 @@ describe('FolderTabs', () => {
     expect(attached.classes()).toContain('folder-attachment--expand-hover');
     expect(attached.classes()).toContain('folder-attachment--gravity-center');
     expect(attached.classes()).toContain('folder-attachment--appearance-rail');
+    expect(attached.classes()).toContain('folder-attachment--texture-none');
+    expect(attached.classes()).toContain('folder-attachment--texture-blend-auto');
+    expect(attached.classes()).toContain('folder-attachment--text-color-auto');
+    expect(attached.classes()).toContain('folder-attachment--tab-rotation-straight');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--depth-raised');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--layers-2');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--tone-slate');
+    expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-none');
+    expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-auto');
+    expect(attached.find('.folder-binder').classes()).toContain('folder-binder--text-color-auto');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--tone-slate');
+    expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-none');
+    expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-blend-auto');
+    expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--text-color-auto');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder-attachment__folder--edge-top');
 
     const binder = mount({
@@ -1338,9 +1399,17 @@ describe('FolderTabs', () => {
         layers: Number.NaN,
         activeIndex: Number.POSITIVE_INFINITY,
         tone: 'neon',
+        texture: 'linen',
+        textureBlendMode: 'smudge',
+        textColor: 'invisible',
         pulled: 'false',
       } as any, {
-        default: () => h(Folder, { tone: 'neon' as any }, () => 'Folder content'),
+        default: () => h(Folder, {
+          tone: 'neon' as any,
+          texture: 'linen' as any,
+          textureBlendMode: 'smudge' as any,
+          textColor: 'invisible' as any,
+        }, () => 'Folder content'),
       }),
     });
 
@@ -1348,9 +1417,15 @@ describe('FolderTabs', () => {
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--depth-raised');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--layers-2');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--tone-slate');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-none');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-auto');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--text-color-auto');
     expect(binder.find('.folder-binder').classes()).not.toContain('is-pulled');
     expect(binder.find('.folder-binder').attributes('style')).toContain('--folder-binder-active-index: 0');
     expect(binder.find('.folder').classes()).toContain('folder--tone-slate');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-none');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-blend-auto');
+    expect(binder.find('.folder').classes()).toContain('folder--text-color-auto');
 
     const panelStack = mount(FolderTabPanelStack, {
       props: {
@@ -1360,6 +1435,9 @@ describe('FolderTabs', () => {
         layers: Number.NaN,
         activeIndex: Number.POSITIVE_INFINITY,
         tone: 'neon',
+        texture: 'linen',
+        textureBlendMode: 'smudge',
+        textColor: 'invisible',
         pulled: 'false',
       } as any,
       slots: {
@@ -1371,6 +1449,9 @@ describe('FolderTabs', () => {
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--depth-raised');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--layers-2');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--tone-slate');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-none');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-blend-auto');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--text-color-auto');
     expect(panelStack.classes()).not.toContain('is-pulled');
     expect(panelStack.attributes('style')).toContain('--folder-tab-panel-active-index: 0');
   });
@@ -1919,6 +2000,101 @@ describe('FolderTabs', () => {
     expect(binder.classes()).toContain('is-pulled');
     expect(wrapper.find('.folder').classes()).toContain('folder--tone-teal');
     expect(wrapper.text()).toBe('Folder content');
+  });
+
+  it('applies paper texture classes across rails, binders, folders, and compatibility stacks', () => {
+    expect(folderTabsCss).toContain([
+      '.folder-binder--texture-paper,',
+      '.folder-tab-panel-stack--texture-paper,',
+      '.folder--texture-paper {',
+      '  --folder-border: color-mix(in srgb, var(--folder-tint) 44%, #8a8374);',
+      '  --folder-layer-border: color-mix(in srgb, var(--folder-tint) 44%, rgba(226, 219, 201, 0.28));',
+      '  --folder-paper-sheet-opacity: var(--folder-paper-sheet-opacity-custom, 0.5);',
+      '  --folder-paper-content-opacity: var(--folder-paper-content-opacity-custom, 0.3);',
+      '  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.42);',
+      '}',
+    ].join('\n'));
+
+    const rail = mount(FolderTabs, {
+      props: {
+        tabs,
+        modelValue: 'photos',
+        ariaLabel: 'Paper rail',
+        texture: 'paper',
+        textureBlendMode: 'multiply',
+        textColor: 'dark',
+      },
+    });
+
+    expect(rail.classes()).toContain('folder-tabs--texture-paper');
+    expect(rail.classes()).toContain('folder-tabs--texture-blend-multiply');
+    expect(rail.classes()).toContain('folder-tabs--text-color-dark');
+
+    const attachment = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'photos',
+        ariaLabel: 'Paper attachment',
+        texture: 'paper',
+        textureBlendMode: 'multiply',
+        textColor: 'dark',
+      },
+      slots: {
+        default: 'Paper attachment content',
+      },
+    });
+
+    expect(attachment.classes()).toContain('folder-attachment--texture-paper');
+    expect(attachment.classes()).toContain('folder-attachment--texture-blend-multiply');
+    expect(attachment.classes()).toContain('folder-attachment--text-color-dark');
+    expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--texture-paper');
+    expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-multiply');
+    expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--text-color-dark');
+    expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-paper');
+    expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-blend-multiply');
+    expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--text-color-dark');
+
+    const binder = mount({
+      render: () => h(FolderBinder, {
+        texture: 'paper',
+        textureBlendMode: 'multiply',
+        textColor: 'dark',
+      }, {
+        default: () => h(Folder, {
+          texture: 'paper',
+          textureBlendMode: 'multiply',
+          textColor: 'dark',
+        }, () => 'Folder content'),
+      }),
+    });
+
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-paper');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-multiply');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--text-color-dark');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-paper');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-blend-multiply');
+    expect(binder.find('.folder').classes()).toContain('folder--text-color-dark');
+
+    const panelStack = mount(FolderTabPanelStack, {
+      props: {
+        texture: 'paper',
+        textureBlendMode: 'multiply',
+        textColor: 'dark',
+      },
+      slots: {
+        default: 'Panel stack content',
+      },
+    });
+
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-paper');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-blend-multiply');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--text-color-dark');
+    expect(panelStack.find('.folder-binder').classes()).toContain('folder-binder--texture-paper');
+    expect(panelStack.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-multiply');
+    expect(panelStack.find('.folder-binder').classes()).toContain('folder-binder--text-color-dark');
+    expect(panelStack.find('.folder').classes()).toContain('folder--texture-paper');
+    expect(panelStack.find('.folder').classes()).toContain('folder--texture-blend-multiply');
+    expect(panelStack.find('.folder').classes()).toContain('folder--text-color-dark');
   });
 
   it('derives standalone binder physical orientation from edge rather than the default-edge hint', () => {
@@ -3076,20 +3252,40 @@ describe('FolderTabs', () => {
         default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
       },
     });
+    const rotatedTabsWrapper = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'plans',
+        ariaLabel: 'Rotated tab handles',
+        appearance: 'stack',
+        stackRotation: 'folders',
+        tabRotation: 'rotated',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
 
     await nextTick();
 
     expect(squareWrapper.classes()).not.toContain('folder-attachment--tucked-tilt');
     expect(squareWrapper.classes()).toContain('folder-attachment--stack-rotation-none');
+    expect(squareWrapper.classes()).toContain('folder-attachment--tab-rotation-straight');
     expect(tiltedWrapper.classes()).toContain('folder-attachment--tucked-tilt');
     expect(tiltedWrapper.classes()).toContain('folder-attachment--stack-rotation-pieces');
     expect(sheetTiltWrapper.classes()).toContain('folder-attachment--tucked-tilt');
     expect(sheetTiltWrapper.classes()).toContain('folder-attachment--stack-rotation-folders');
     expect(pieceTiltWrapper.classes()).toContain('folder-attachment--stack-rotation-pieces');
+    expect(pieceTiltWrapper.classes()).toContain('folder-attachment--tab-rotation-straight');
+    expect(rotatedTabsWrapper.classes()).toContain('folder-attachment--tab-rotation-rotated');
     expect(folderPieceStyleNumber(squareWrapper, 0, '--folder-piece-rotate')).toBe(0);
     expect(folderPieceStyleNumber(tiltedWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
     expect(folderPieceStyleNumber(sheetTiltWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
     expect(folderPieceStyleNumber(pieceTiltWrapper, 0, '--folder-piece-rotate')).not.toBe(0);
+    expect(pieceTiltWrapper.findAll('.folder-attachment__folder')[0].attributes('style'))
+      .toContain('--folder-tab-counter-rotate:');
+    expect(rotatedTabsWrapper.findAll('.folder-attachment__folder')[0].attributes('style'))
+      .toContain('--folder-tab-piece-rotate:');
     expect(tiltedWrapper.find('.folder-attachment__folder.is-active').attributes('style'))
       .toContain('--folder-piece-rotate: 0.00deg');
     expect(sheetTiltWrapper.find('.folder-attachment__folder.is-active').attributes('style'))
@@ -3097,6 +3293,14 @@ describe('FolderTabs', () => {
     expect(normalizeFolderStackRotation('folders')).toBe('folders');
     expect(normalizeFolderStackRotation('pieces')).toBe('pieces');
     expect(normalizeFolderStackRotation('surprise')).toBe('none');
+    expect(normalizeFolderTabRotation('rotated')).toBe('rotated');
+    expect(normalizeFolderTabRotation('sideways')).toBe('straight');
+    expect(normalizeFolderSurfaceTexture('paper')).toBe('paper');
+    expect(normalizeFolderSurfaceTexture('linen')).toBe('none');
+    expect(normalizeFolderSurfaceTextColor('dark')).toBe('dark');
+    expect(normalizeFolderSurfaceTextColor('invisible')).toBe('auto');
+    expect(normalizeFolderSurfaceTextureBlendMode('multiply')).toBe('multiply');
+    expect(normalizeFolderSurfaceTextureBlendMode('smudge')).toBe('auto');
   });
 
   it('lets mixed-edge binders follow the active physical edge instead of the root flow axis', async () => {

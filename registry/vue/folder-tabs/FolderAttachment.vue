@@ -33,9 +33,17 @@ import {
   normalizeFolderTabKeyForLookup,
   normalizeFolderMotionDuration,
   normalizeFolderStackRotation,
+  normalizeFolderSurfaceTextColor,
+  normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTexture,
   normalizeFolderTone,
+  normalizeFolderTabRotation,
   type FolderBinderDepth,
   type FolderStackRotation,
+  type FolderTabRotation,
+  type FolderSurfaceTextColor,
+  type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTexture,
   type FolderTabActivation,
   type FolderTabAppearance,
   type FolderTabDensity,
@@ -64,7 +72,11 @@ const props = withDefaults(defineProps<{
   depth?: FolderBinderDepth;
   layers?: number;
   tone?: FolderTone;
+  texture?: FolderSurfaceTexture;
+  textureBlendMode?: FolderSurfaceTextureBlendMode;
+  textColor?: FolderSurfaceTextColor;
   stackRotation?: FolderStackRotation | null;
+  tabRotation?: FolderTabRotation;
   tuckedTilt?: boolean;
   pullDuration?: number;
   returnDuration?: number;
@@ -83,7 +95,11 @@ const props = withDefaults(defineProps<{
   depth: 'raised',
   layers: 2,
   tone: 'slate',
+  texture: 'none',
+  textureBlendMode: 'auto',
+  textColor: 'auto',
   stackRotation: null,
+  tabRotation: 'straight',
   tuckedTilt: false,
   pullDuration: 420,
   emulatedHoverKey: null,
@@ -157,6 +173,10 @@ const normalizedStackRotation = computed(() => (
     ? (props.tuckedTilt ? 'pieces' : 'none')
     : normalizeFolderStackRotation(props.stackRotation)
 ));
+const normalizedTabRotation = computed(() => normalizeFolderTabRotation(props.tabRotation));
+const normalizedTexture = computed(() => normalizeFolderSurfaceTexture(props.texture));
+const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
+const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 const normalizedTone = computed(() => normalizeFolderTone(props.tone));
 const activeEdge = computed(() => activeTab.value
   ? getTabEdge(activeTab.value)
@@ -216,6 +236,10 @@ const rootClasses = computed(() => [
   `folder-attachment--activation-${normalizedActivation.value}`,
   `folder-attachment--gravity-${normalizedGravity.value}`,
   `folder-attachment--stack-rotation-${normalizedStackRotation.value}`,
+  `folder-attachment--tab-rotation-${normalizedTabRotation.value}`,
+  `folder-attachment--texture-${normalizedTexture.value}`,
+  `folder-attachment--texture-blend-${normalizedTextureBlendMode.value}`,
+  `folder-attachment--text-color-${normalizedTextColor.value}`,
   {
     'folder-attachment--hover-emulated': emulatedHoverKey.value !== null,
     'folder-attachment--tucked-tilt': normalizedStackRotation.value !== 'none',
@@ -588,6 +612,8 @@ function folderStyle(tab: FolderTabItem, index: number): Record<string, string |
     '--folder-piece-x': `${actualOffset.x.toFixed(2)}px`,
     '--folder-piece-y': `${actualOffset.y.toFixed(2)}px`,
     '--folder-piece-rotate': `${rotation.toFixed(2)}deg`,
+    '--folder-tab-piece-rotate': `${rotation.toFixed(2)}deg`,
+    '--folder-tab-counter-rotate': `${(-rotation).toFixed(2)}deg`,
     '--folder-piece-rest-x': `${restOffset.x.toFixed(2)}px`,
     '--folder-piece-rest-y': `${restOffset.y.toFixed(2)}px`,
     '--folder-tab-hover-x': `${hoverOffset.x.toFixed(2)}px`,
@@ -842,6 +868,9 @@ function clearFocusedTab(tab: FolderTabItem): void {
       :layers="props.layers"
       :active-index="activeIndex"
       :tone="normalizedTone"
+      :texture="normalizedTexture"
+      :texture-blend-mode="normalizedTextureBlendMode"
+      :text-color="normalizedTextColor"
       :pulled="motion.isPulled.value"
     >
       <div
@@ -856,6 +885,9 @@ function clearFocusedTab(tab: FolderTabItem): void {
           :class="folderClasses(tab)"
           :style="folderStyle(tab, tabIndex)"
           :tone="folderTone(tab)"
+          :texture="normalizedTexture"
+          :texture-blend-mode="normalizedTextureBlendMode"
+          :text-color="normalizedTextColor"
         >
           <div class="folder-attachment__sheet" aria-hidden="true" />
 

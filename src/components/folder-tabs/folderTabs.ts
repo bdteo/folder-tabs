@@ -13,6 +13,27 @@ export type FolderBinderDepth = 'flat' | 'subtle' | 'raised' | 'deep';
 export type FolderTabPanelStackDepth = FolderBinderDepth;
 export type FolderTone = 'slate' | 'moss' | 'teal' | 'copper' | 'violet';
 export type FolderStackRotation = 'none' | 'folders' | 'pieces';
+export type FolderTabRotation = 'straight' | 'rotated';
+export type FolderSurfaceTexture = 'none' | 'paper';
+export type FolderSurfaceTextColor = 'auto' | 'light' | 'dark' | 'inherit';
+export type FolderSurfaceTextureBlendMode =
+  | 'auto'
+  | 'normal'
+  | 'multiply'
+  | 'screen'
+  | 'overlay'
+  | 'darken'
+  | 'lighten'
+  | 'color-dodge'
+  | 'color-burn'
+  | 'hard-light'
+  | 'soft-light'
+  | 'difference'
+  | 'exclusion'
+  | 'hue'
+  | 'saturation'
+  | 'color'
+  | 'luminosity';
 
 export interface FolderTabItem {
   key: FolderTabKey;
@@ -41,6 +62,28 @@ const folderTabAppearances = new Set<FolderTabAppearance>(['rail', 'stack']);
 const folderBinderDepths = new Set<FolderBinderDepth>(['flat', 'subtle', 'raised', 'deep']);
 const folderTones = new Set<FolderTone>(['slate', 'moss', 'teal', 'copper', 'violet']);
 const folderStackRotations = new Set<FolderStackRotation>(['none', 'folders', 'pieces']);
+const folderTabRotations = new Set<FolderTabRotation>(['straight', 'rotated']);
+const folderSurfaceTextures = new Set<FolderSurfaceTexture>(['none', 'paper']);
+const folderSurfaceTextColors = new Set<FolderSurfaceTextColor>(['auto', 'light', 'dark', 'inherit']);
+const folderSurfaceTextureBlendModes = new Set<FolderSurfaceTextureBlendMode>([
+  'auto',
+  'normal',
+  'multiply',
+  'screen',
+  'overlay',
+  'darken',
+  'lighten',
+  'color-dodge',
+  'color-burn',
+  'hard-light',
+  'soft-light',
+  'difference',
+  'exclusion',
+  'hue',
+  'saturation',
+  'color',
+  'luminosity',
+]);
 
 export function normalizeFolderTabs(tabs: unknown): FolderTabItem[] {
   if (!Array.isArray(tabs)) {
@@ -269,6 +312,30 @@ export function normalizeFolderStackRotation(rotation: unknown): FolderStackRota
   return folderStackRotations.has(rotation as FolderStackRotation)
     ? rotation as FolderStackRotation
     : 'none';
+}
+
+export function normalizeFolderTabRotation(rotation: unknown): FolderTabRotation {
+  return folderTabRotations.has(rotation as FolderTabRotation)
+    ? rotation as FolderTabRotation
+    : 'straight';
+}
+
+export function normalizeFolderSurfaceTexture(texture: unknown): FolderSurfaceTexture {
+  return folderSurfaceTextures.has(texture as FolderSurfaceTexture)
+    ? texture as FolderSurfaceTexture
+    : 'none';
+}
+
+export function normalizeFolderSurfaceTextColor(textColor: unknown): FolderSurfaceTextColor {
+  return folderSurfaceTextColors.has(textColor as FolderSurfaceTextColor)
+    ? textColor as FolderSurfaceTextColor
+    : 'auto';
+}
+
+export function normalizeFolderSurfaceTextureBlendMode(blendMode: unknown): FolderSurfaceTextureBlendMode {
+  return folderSurfaceTextureBlendModes.has(blendMode as FolderSurfaceTextureBlendMode)
+    ? blendMode as FolderSurfaceTextureBlendMode
+    : 'auto';
 }
 
 export function getFolderTabDomId(

@@ -9,3 +9,4 @@ export { default as FolderTabPanelStack } from './FolderTabPanelStack.vue';
 export { default as FolderTabs } from './FolderTabs.vue';
 export * from './folderGeometry';
 export * from './folderTabs';
+export * from './paperTextures';

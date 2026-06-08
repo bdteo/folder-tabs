@@ -3,6 +3,8 @@ import {
   getAdjacentFolderTabKey,
   getCompactSize,
   getFirstFolderTabKey,
+  getFolderPaperTexturePreset,
+  getFolderPaperTextureStyle,
   getFolderDensityOverlap,
   getFolderEdgeVector,
   getFolderHoverOffset,
@@ -29,6 +31,10 @@ import {
   normalizeFolderBinderDepth,
   normalizeFolderLayerCount,
   normalizeFolderMotionDuration,
+  normalizeFolderSurfaceTextColor,
+  normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTexture,
+  normalizeFolderTabRotation,
   normalizeFolderTabActivation,
   normalizeFolderTabAppearance,
   normalizeFolderTabDensity,
@@ -213,6 +219,29 @@ describe('folder tab helpers', () => {
     expect(normalizeFolderActiveIndex(Number.NaN)).toBe(0);
     expect(normalizeFolderTone('copper')).toBe('copper');
     expect(normalizeFolderTone('neon')).toBe('slate');
+    expect(normalizeFolderTabRotation('rotated')).toBe('rotated');
+    expect(normalizeFolderTabRotation('sideways')).toBe('straight');
+    expect(normalizeFolderSurfaceTexture('paper')).toBe('paper');
+    expect(normalizeFolderSurfaceTexture('linen')).toBe('none');
+    expect(normalizeFolderSurfaceTextColor('dark')).toBe('dark');
+    expect(normalizeFolderSurfaceTextColor('invisible')).toBe('auto');
+    expect(normalizeFolderSurfaceTextureBlendMode('multiply')).toBe('multiply');
+    expect(normalizeFolderSurfaceTextureBlendMode('smudge')).toBe('auto');
+  });
+
+  it('exposes package paper texture presets as bindable CSS variables', () => {
+    expect(getFolderPaperTexturePreset('paper05HybridStrong')?.label).toBe('#5 strong tile');
+    expect(getFolderPaperTexturePreset('missing')).toBeNull();
+
+    expect(getFolderPaperTextureStyle('paper05HybridStrong')).toMatchObject({
+      '--folder-paper-filter-custom': 'contrast(1.7) brightness(0.9) saturate(0.86)',
+      '--folder-paper-sheet-opacity-custom': '0.72',
+      '--folder-paper-content-opacity-custom': '0.46',
+      '--folder-paper-tab-opacity-custom': '0.6',
+    });
+    expect(getFolderPaperTextureStyle('paper05HybridStrong')['--folder-paper-texture-custom'])
+      ?.toContain('05-creamy-fine-tooth-hybrid-strong-2048-tile');
+    expect(getFolderPaperTextureStyle('missing')).toEqual({});
   });
 
   it('navigates among focusable tabs without wrapping beyond the physical stack', () => {

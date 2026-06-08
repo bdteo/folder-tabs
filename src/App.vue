@@ -1,6 +1,26 @@
 <script setup lang="ts">
 import { computed, defineComponent, h, ref } from 'vue';
-import { FolderAttachment, FolderTabs, type FolderStackRotation, type FolderTabItem } from './components/folder-tabs';
+import {
+  FolderAttachment,
+  FolderTabs,
+  folderPaperTexturePresetOptions,
+  getFolderPaperTextureStyle,
+  normalizeFolderSurfaceTextColor,
+  normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderTabRotation,
+  type FolderPaperTexturePresetKey,
+  type FolderStackRotation,
+  type FolderSurfaceTextColor,
+  type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTexture,
+  type FolderTabRotation,
+  type FolderTabItem,
+} from './components/folder-tabs';
+
+type DemoSurfaceMode =
+  | 'clean'
+  | 'fiber'
+  | FolderPaperTexturePresetKey;
 
 const icon = (name: string, children: ReturnType<typeof h>[]) => defineComponent({
   name,
@@ -163,6 +183,24 @@ function getDemoParam(paramNames: string | string[]): string | null {
   return null;
 }
 
+function replaceDemoQueryParam(
+  name: string,
+  value: string,
+  options: { aliases?: string[]; defaultValue?: string } = {},
+) {
+  const url = new URL(window.location.href);
+
+  for (const paramName of [name, ...(options.aliases ?? [])]) {
+    url.searchParams.delete(paramName);
+  }
+
+  if (value !== options.defaultValue) {
+    url.searchParams.set(name, value);
+  }
+
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+}
+
 function demoActiveKey(
   demoTabs: FolderTabItem[],
   paramNames: string | string[],
@@ -212,18 +250,95 @@ const stackRotationModes: Array<{ key: FolderStackRotation; label: string }> = [
   { key: 'folders', label: 'Folder sheets' },
   { key: 'pieces', label: 'Whole pieces' },
 ];
+const tabRotationModes: Array<{ key: FolderTabRotation; label: string }> = [
+  { key: 'straight', label: 'Straight tabs' },
+  { key: 'rotated', label: 'Rotated tabs' },
+];
+const surfaceModes: Array<{ key: DemoSurfaceMode; label: string }> = [
+  { key: 'clean', label: 'Clean' },
+  { key: 'fiber', label: 'Fiber paper' },
+  ...folderPaperTexturePresetOptions.map(({ key, label }) => ({ key, label })),
+];
+const textureBlendModes: Array<{ key: FolderSurfaceTextureBlendMode; label: string }> = [
+  { key: 'auto', label: 'Auto' },
+  { key: 'normal', label: 'Normal' },
+  { key: 'multiply', label: 'Multiply' },
+  { key: 'overlay', label: 'Overlay' },
+  { key: 'soft-light', label: 'Soft light' },
+  { key: 'hard-light', label: 'Hard light' },
+  { key: 'color-burn', label: 'Color burn' },
+  { key: 'luminosity', label: 'Luminosity' },
+];
+const textColorModes: Array<{ key: FolderSurfaceTextColor; label: string }> = [
+  { key: 'auto', label: 'Auto' },
+  { key: 'light', label: 'Light ink' },
+  { key: 'dark', label: 'Dark ink' },
+  { key: 'inherit', label: 'Inherit' },
+];
 const rotationModeParam = getDemoParam(['stackRotation', 'rotation']);
 const stackRotationMode = ref<FolderStackRotation>(
   rotationModeParam === 'none' || rotationModeParam === 'folders' || rotationModeParam === 'pieces'
     ? rotationModeParam
     : 'folders',
 );
+const tabRotationParam = getDemoParam(['tabRotation', 'handleRotation', 'handles']);
+const tabRotationMode = ref<FolderTabRotation>(normalizeFolderTabRotation(tabRotationParam));
+const surfaceModeParam = getDemoParam(['paperTexture', 'paper', 'texture', 'surface']);
+const surfaceMode = ref<DemoSurfaceMode>(normalizeDemoSurfaceMode(surfaceModeParam));
+const textureBlendModeParam = getDemoParam(['textureBlendMode', 'textureBlend', 'paperBlend', 'blend']);
+const textureBlendMode = ref<FolderSurfaceTextureBlendMode>(
+  normalizeFolderSurfaceTextureBlendMode(textureBlendModeParam),
+);
+const textColorParam = getDemoParam(['textColor', 'text', 'ink']);
+const textColor = ref<FolderSurfaceTextColor>(normalizeFolderSurfaceTextColor(textColorParam));
+
+function setStackRotationMode(mode: FolderStackRotation) {
+  stackRotationMode.value = mode;
+  replaceDemoQueryParam('stackRotation', mode, {
+    aliases: ['rotation'],
+    defaultValue: 'folders',
+  });
+}
+
+function setTabRotationMode(mode: FolderTabRotation) {
+  tabRotationMode.value = mode;
+  replaceDemoQueryParam('tabRotation', mode, {
+    aliases: ['handleRotation', 'handles'],
+    defaultValue: 'straight',
+  });
+}
+
+function setSurfaceMode(mode: DemoSurfaceMode) {
+  surfaceMode.value = mode;
+  replaceDemoQueryParam('texture', mode, {
+    aliases: ['paperTexture', 'paper', 'surface'],
+    defaultValue: 'clean',
+  });
+}
+
+function setTextureBlendMode(mode: FolderSurfaceTextureBlendMode) {
+  textureBlendMode.value = mode;
+  replaceDemoQueryParam('blend', mode, {
+    aliases: ['textureBlendMode', 'textureBlend', 'paperBlend'],
+    defaultValue: 'auto',
+  });
+}
+
+function setTextColor(mode: FolderSurfaceTextColor) {
+  textColor.value = mode;
+  replaceDemoQueryParam('ink', mode, {
+    aliases: ['textColor', 'text'],
+    defaultValue: 'auto',
+  });
+}
 
 const activePrimary = computed(() => primaryTabs.find((tab) => String(tab.key) === primaryActive.value) ?? null);
 const activeWorkbench = computed(() => workbenchTabs.find((tab) => String(tab.key) === workbenchActive.value) ?? null);
 const activeRail = computed(() => caseTabs.find((tab) => String(tab.key) === railActive.value) ?? null);
 const primaryCount = computed(() => formatCount(activePrimary.value));
 const workbenchCount = computed(() => formatCount(activeWorkbench.value));
+const surfaceTexture = computed<FolderSurfaceTexture>(() => (surfaceMode.value === 'clean' ? 'none' : 'paper'));
+const surfaceStyle = computed(() => getFolderPaperTextureStyle(surfaceMode.value));
 const workbenchEdgeLabel = computed(() => {
   const edge = activeWorkbench.value?.edge ?? 'top';
 
@@ -241,10 +356,73 @@ const workbenchCaption = computed(() => {
       return 'Top folders can split into start and end groups while sharing one continuous binder surface.';
   }
 });
+
+function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
+  if (value === 'watercolor' || value === 'image' || value === 'asset') {
+    return 'watercolor';
+  }
+
+  if (
+    value === 'paper03HybridStrong'
+    || value === 'paper3HybridStrong'
+    || value === 'paper03'
+    || value === 'paper3'
+    || value === 'hybrid3'
+    || value === '3'
+  ) {
+    return 'paper03HybridStrong';
+  }
+
+  if (
+    value === 'paper03HybridStrongRepeat'
+    || value === 'paper3HybridStrongRepeat'
+    || value === 'paper03Repeat'
+    || value === 'paper3Repeat'
+    || value === 'hybrid3Repeat'
+    || value === '3Repeat'
+  ) {
+    return 'paper03HybridStrongRepeat';
+  }
+
+  if (
+    value === 'paper05HybridStrong'
+    || value === 'paper5HybridStrong'
+    || value === 'paper05'
+    || value === 'paper5'
+    || value === 'hybrid5'
+    || value === '5'
+  ) {
+    return 'paper05HybridStrong';
+  }
+
+  if (
+    value === 'paper05HybridStrongRepeat'
+    || value === 'paper5HybridStrongRepeat'
+    || value === 'paper05Repeat'
+    || value === 'paper5Repeat'
+    || value === 'hybrid5Repeat'
+    || value === '5Repeat'
+  ) {
+    return 'paper05HybridStrongRepeat';
+  }
+
+  if (value === 'paper' || value === 'fiber' || value === 'fibers' || value === 'procedural') {
+    return 'fiber';
+  }
+
+  return 'clean';
+}
 </script>
 
 <template>
-  <main class="demo-shell">
+  <main
+    class="demo-shell"
+    :class="[
+      `demo-shell--surface-${surfaceMode}`,
+      { 'demo-shell--paper': surfaceTexture === 'paper' },
+    ]"
+    :style="surfaceStyle"
+  >
     <section id="primary-binder-demo" class="demo-showcase" aria-label="FolderTabs primary binder demo">
       <div class="demo-showcase__copy">
         <p class="demo-kicker">Vue physical primitive</p>
@@ -256,19 +434,94 @@ const workbenchCaption = computed(() => {
         <div class="demo-proofline" aria-hidden="true">
           <span>split lanes</span>
           <span>surface tilt</span>
+          <span>paper grain</span>
           <span>roving focus</span>
         </div>
-        <div class="demo-mode-switch" aria-label="Stack rotation mode">
-          <button
-            v-for="mode in stackRotationModes"
-            :key="mode.key"
-            type="button"
-            :class="{ 'is-active': stackRotationMode === mode.key }"
-            :aria-pressed="stackRotationMode === mode.key"
-            @click="stackRotationMode = mode.key"
-          >
-            {{ mode.label }}
-          </button>
+        <div class="demo-controls">
+          <div class="demo-controls__group">
+            <span class="demo-controls__label">Rotation</span>
+            <div class="demo-mode-switch" aria-label="Stack rotation mode">
+              <button
+                v-for="mode in stackRotationModes"
+                :key="mode.key"
+                :data-demo-control="`rotation:${mode.key}`"
+                type="button"
+                :class="{ 'is-active': stackRotationMode === mode.key }"
+                :aria-pressed="stackRotationMode === mode.key"
+                @click="setStackRotationMode(mode.key)"
+              >
+                {{ mode.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="demo-controls__group">
+            <span class="demo-controls__label">Tab handles</span>
+            <div class="demo-mode-switch" aria-label="Tab handle rotation mode">
+              <button
+                v-for="mode in tabRotationModes"
+                :key="mode.key"
+                :data-demo-control="`tab-rotation:${mode.key}`"
+                type="button"
+                :class="{ 'is-active': tabRotationMode === mode.key }"
+                :aria-pressed="tabRotationMode === mode.key"
+                @click="setTabRotationMode(mode.key)"
+              >
+                {{ mode.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="demo-controls__group">
+            <span class="demo-controls__label">Surface</span>
+            <div class="demo-mode-switch" aria-label="Surface texture mode">
+              <button
+                v-for="mode in surfaceModes"
+                :key="mode.key"
+                :data-demo-control="`surface:${mode.key}`"
+                type="button"
+                :class="{ 'is-active': surfaceMode === mode.key }"
+                :aria-pressed="surfaceMode === mode.key"
+                @click="setSurfaceMode(mode.key)"
+              >
+                {{ mode.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="demo-controls__group">
+            <span class="demo-controls__label">Blend</span>
+            <div class="demo-mode-switch" aria-label="Texture blend mode">
+              <button
+                v-for="mode in textureBlendModes"
+                :key="mode.key"
+                :data-demo-control="`blend:${mode.key}`"
+                type="button"
+                :class="{ 'is-active': textureBlendMode === mode.key }"
+                :aria-pressed="textureBlendMode === mode.key"
+                @click="setTextureBlendMode(mode.key)"
+              >
+                {{ mode.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="demo-controls__group">
+            <span class="demo-controls__label">Ink</span>
+            <div class="demo-mode-switch" aria-label="Text color mode">
+              <button
+                v-for="mode in textColorModes"
+                :key="mode.key"
+                :data-demo-control="`ink:${mode.key}`"
+                type="button"
+                :class="{ 'is-active': textColor === mode.key }"
+                :aria-pressed="textColor === mode.key"
+                @click="setTextColor(mode.key)"
+              >
+                {{ mode.label }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -285,6 +538,10 @@ const workbenchCaption = computed(() => {
         depth="deep"
         tone="slate"
         :stack-rotation="stackRotationMode"
+        :tab-rotation="tabRotationMode"
+        :texture="surfaceTexture"
+        :texture-blend-mode="textureBlendMode"
+        :text-color="textColor"
         :layers="2"
         :emulated-hover-key="primaryHoverKey"
       >
@@ -344,6 +601,10 @@ const workbenchCaption = computed(() => {
           depth="deep"
           tone="teal"
           :stack-rotation="stackRotationMode"
+          :tab-rotation="tabRotationMode"
+          :texture="surfaceTexture"
+          :texture-blend-mode="textureBlendMode"
+          :text-color="textColor"
           :layers="2"
           :emulated-hover-key="workbenchHoverKey"
         >
@@ -398,6 +659,9 @@ const workbenchCaption = computed(() => {
           edge="top"
           appearance="stack"
           expand-on="hover"
+          :texture="surfaceTexture"
+          :texture-blend-mode="textureBlendMode"
+          :text-color="textColor"
         />
         <div class="demo-rail-readout" aria-live="polite">
           <span>{{ activeRail?.shortLabel }}</span>

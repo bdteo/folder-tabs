@@ -99,12 +99,33 @@ select {
   padding-block: 0.42rem;
 }
 
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 0.9rem;
+  align-items: end;
+  margin-block-start: 0.15rem;
+}
+
+.demo-controls__group {
+  display: grid;
+  gap: 0.32rem;
+  min-inline-size: 0;
+}
+
+.demo-controls__label {
+  color: rgba(247, 241, 231, 0.48);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
 .demo-mode-switch {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   max-inline-size: 100%;
-  margin-block-start: 0.25rem;
   padding: 0.22rem;
   border: 1px solid rgba(150, 207, 184, 0.22);
   background: rgba(15, 18, 16, 0.34);
@@ -128,7 +149,7 @@ select {
 .demo-mode-switch button:hover,
 .demo-mode-switch button:focus-visible,
 .demo-mode-switch button.is-active {
-  background: rgba(150, 207, 184, 0.14);
+  background: rgba(150, 207, 184, 0.16);
   color: #fff8ec;
 }
 
@@ -142,13 +163,17 @@ select {
   --ft-surface-active: #2d302a;
   --ft-border: #54574e;
   --ft-border-active: #8a8676;
-  --ft-text: #faf3e7;
-  --ft-muted: #aaa598;
   --ft-focus: #d8ff72;
   --ft-rail: #666357;
 
   min-inline-size: 0;
   filter: drop-shadow(0 1.15rem 1.65rem rgba(0, 0, 0, 0.34));
+}
+
+.demo-shell--paper .demo-stage {
+  filter:
+    drop-shadow(0 1.25rem 1.75rem rgba(0, 0, 0, 0.36))
+    saturate(1.03);
 }
 
 .demo-stage--primary {
@@ -178,7 +203,7 @@ select {
 
 .demo-file__eyebrow {
   margin: 0 0 0.8rem;
-  color: #c7c0af;
+  color: var(--folder-ink-muted, #c7c0af);
   font-size: 0.75rem;
   font-weight: 850;
   letter-spacing: 0.12em;
@@ -188,7 +213,7 @@ select {
 .demo-folder h2,
 .demo-section-copy h2 {
   margin: 0;
-  color: #fff8ec;
+  color: var(--folder-ink, #fff8ec);
   font-size: clamp(2.4rem, 5.4vw, 5.5rem);
   line-height: 1.02;
   overflow-wrap: anywhere;
@@ -200,7 +225,7 @@ select {
 
 .demo-folder p,
 .demo-section-copy p {
-  color: #c9c2b6;
+  color: var(--folder-ink-muted, #c9c2b6);
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -217,8 +242,8 @@ select {
   align-self: start;
   inline-size: clamp(4.5rem, 9vw, 8rem);
   block-size: clamp(4.5rem, 9vw, 8rem);
-  border: 1px solid rgba(247, 241, 231, 0.28);
-  color: #fff8ec;
+  border: 1px solid color-mix(in srgb, var(--folder-ink, #fff8ec) 28%, transparent);
+  color: var(--folder-ink, #fff8ec);
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.6rem, 5.8vw, 5.3rem);
 }
@@ -230,7 +255,7 @@ select {
   gap: 0.7rem;
   align-self: end;
   margin: 0;
-  border-block-start: 1px solid rgba(247, 241, 231, 0.2);
+  border-block-start: 1px solid color-mix(in srgb, var(--folder-ink, #fff8ec) 20%, transparent);
   padding-block-start: 1rem;
 }
 
@@ -239,7 +264,7 @@ select {
 }
 
 .demo-folder__ledger dt {
-  color: rgba(247, 241, 231, 0.45);
+  color: color-mix(in srgb, var(--folder-ink, #fff8ec) 45%, transparent);
   font-size: 0.68rem;
   font-weight: 850;
   letter-spacing: 0.1em;
@@ -248,7 +273,7 @@ select {
 
 .demo-folder__ledger dd {
   margin: 0.22rem 0 0;
-  color: rgba(247, 241, 231, 0.82);
+  color: color-mix(in srgb, var(--folder-ink, #fff8ec) 82%, transparent);
   font-size: 0.82rem;
   font-weight: 850;
   letter-spacing: 0.06em;
@@ -331,7 +356,7 @@ select {
   gap: 0.55rem;
   min-block-size: min(22rem, 100%);
   padding: 0.6rem;
-  border: 1px solid rgba(247, 241, 231, 0.18);
+  border: 1px solid color-mix(in srgb, var(--folder-ink, #fff8ec) 18%, transparent);
   background:
     linear-gradient(180deg, rgba(15, 18, 16, 0.2), rgba(15, 18, 16, 0.55)),
     rgba(247, 241, 231, 0.035);
@@ -343,12 +368,12 @@ select {
   place-items: end start;
   min-block-size: 0;
   padding: 0.65rem;
-  border: 1px solid rgba(247, 241, 231, 0.18);
+  border: 1px solid color-mix(in srgb, var(--folder-ink, #fff8ec) 18%, transparent);
   background:
     linear-gradient(135deg, rgba(247, 241, 231, 0.15), transparent 44%),
     linear-gradient(225deg, color-mix(in srgb, var(--folder-tint) 26%, transparent), transparent 60%),
     rgba(15, 18, 16, 0.42);
-  color: rgba(247, 241, 231, 0.76);
+  color: color-mix(in srgb, var(--folder-ink, #fff8ec) 76%, transparent);
   font-size: 0.68rem;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -365,9 +390,9 @@ select {
   flex-wrap: wrap;
   gap: 0.55rem 0.85rem;
   align-self: end;
-  border-block-start: 1px solid rgba(247, 241, 231, 0.2);
+  border-block-start: 1px solid color-mix(in srgb, var(--folder-ink, #fff8ec) 20%, transparent);
   padding-block-start: 1rem;
-  color: rgba(247, 241, 231, 0.65);
+  color: color-mix(in srgb, var(--folder-ink, #fff8ec) 65%, transparent);
   font-size: 0.74rem;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -377,7 +402,7 @@ select {
 .demo-media__meta span + span::before {
   content: "/";
   margin-inline-end: 0.85rem;
-  color: rgba(247, 241, 231, 0.28);
+  color: color-mix(in srgb, var(--folder-ink, #fff8ec) 28%, transparent);
 }
 
 .demo-workbench__notes {

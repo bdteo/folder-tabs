@@ -1,3 +1,285 @@
+.folder-tabs,
+.folder-binder,
+.folder-tab-panel-stack,
+.folder-attachment,
+.folder {
+  --folder-ink-light: #fff8ec;
+  --folder-ink-light-muted: rgba(247, 241, 231, 0.68);
+  --folder-ink-dark: #1d211c;
+  --folder-ink-dark-muted: rgba(29, 33, 28, 0.68);
+  --folder-ink: var(--folder-ink-light);
+  --folder-ink-muted: var(--folder-ink-light-muted);
+  --folder-paper-texture-default:
+    radial-gradient(circle at 0.82rem 1.1rem, rgba(255, 250, 232, 0.2) 0 0.045rem, transparent 0.055rem),
+    radial-gradient(circle at 2.7rem 0.5rem, rgba(20, 16, 12, 0.14) 0 0.035rem, transparent 0.052rem),
+    repeating-linear-gradient(8deg, rgba(255, 250, 232, 0.052) 0 0.06rem, transparent 0.06rem 0.56rem),
+    repeating-linear-gradient(96deg, rgba(20, 16, 12, 0.04) 0 0.045rem, transparent 0.045rem 0.72rem),
+    linear-gradient(135deg, rgba(255, 250, 232, 0.08), rgba(20, 16, 12, 0.04));
+  --folder-paper-texture-size-default:
+    4.6rem 3.8rem,
+    3.35rem 3.05rem,
+    100% 0.72rem,
+    0.72rem 100%,
+    auto;
+  --folder-paper-blend-mode-default: soft-light;
+  --folder-paper-composite-mode-default: normal;
+  --folder-paper-composite-mode: var(--folder-paper-composite-mode-custom, var(--folder-paper-composite-mode-default));
+  --folder-paper-filter: var(--folder-paper-filter-custom, none);
+  --folder-paper-texture: var(--folder-paper-texture-custom, var(--folder-paper-texture-default));
+  --folder-paper-texture-size: var(--folder-paper-texture-size-custom, var(--folder-paper-texture-size-default));
+  --folder-paper-sheet-opacity: 0;
+  --folder-paper-content-opacity: 0;
+  --folder-paper-tab-opacity: 0;
+  --folder-paper-blend-mode: var(--folder-paper-blend-mode-custom, var(--folder-paper-blend-mode-default));
+}
+
+:is(
+  .folder-tabs--text-color-light,
+  .folder-binder--text-color-light,
+  .folder-tab-panel-stack--text-color-light,
+  .folder-attachment--text-color-light,
+  .folder--text-color-light
+) {
+  --folder-ink: var(--folder-ink-light);
+  --folder-ink-muted: var(--folder-ink-light-muted);
+}
+
+:is(
+  .folder-tabs--text-color-dark,
+  .folder-binder--text-color-dark,
+  .folder-tab-panel-stack--text-color-dark,
+  .folder-attachment--text-color-dark,
+  .folder--text-color-dark
+) {
+  --folder-ink: var(--folder-ink-dark);
+  --folder-ink-muted: var(--folder-ink-dark-muted);
+}
+
+:is(
+  .folder-tabs--text-color-inherit,
+  .folder-binder--text-color-inherit,
+  .folder-tab-panel-stack--text-color-inherit,
+  .folder-attachment--text-color-inherit,
+  .folder--text-color-inherit
+) {
+  --folder-ink: inherit;
+  --folder-ink-muted: inherit;
+}
+
+:is(
+  .folder-tabs--text-color-auto,
+  .folder-binder--text-color-auto,
+  .folder-tab-panel-stack--text-color-auto,
+  .folder-attachment--text-color-auto,
+  .folder--text-color-auto
+):is(
+  .folder-tabs--texture-paper,
+  .folder-binder--texture-paper,
+  .folder-tab-panel-stack--texture-paper,
+  .folder-attachment--texture-paper,
+  .folder--texture-paper
+):is(
+  .folder-tabs--texture-blend-normal,
+  .folder-binder--texture-blend-normal,
+  .folder-tab-panel-stack--texture-blend-normal,
+  .folder-attachment--texture-blend-normal,
+  .folder--texture-blend-normal,
+  .folder-tabs--texture-blend-screen,
+  .folder-binder--texture-blend-screen,
+  .folder-tab-panel-stack--texture-blend-screen,
+  .folder-attachment--texture-blend-screen,
+  .folder--texture-blend-screen,
+  .folder-tabs--texture-blend-lighten,
+  .folder-binder--texture-blend-lighten,
+  .folder-tab-panel-stack--texture-blend-lighten,
+  .folder-attachment--texture-blend-lighten,
+  .folder--texture-blend-lighten,
+  .folder-tabs--texture-blend-color-dodge,
+  .folder-binder--texture-blend-color-dodge,
+  .folder-tab-panel-stack--texture-blend-color-dodge,
+  .folder-attachment--texture-blend-color-dodge,
+  .folder--texture-blend-color-dodge
+) {
+  --folder-ink: var(--folder-ink-dark);
+  --folder-ink-muted: var(--folder-ink-dark-muted);
+}
+
+:is(
+  .folder-tabs--texture-blend-normal,
+  .folder-binder--texture-blend-normal,
+  .folder-tab-panel-stack--texture-blend-normal,
+  .folder--texture-blend-normal,
+  .folder-attachment--texture-blend-normal
+) {
+  --folder-paper-blend-mode-default: normal;
+  --folder-paper-composite-mode-default: normal;
+}
+
+:is(
+  .folder-tabs--texture-blend-multiply,
+  .folder-binder--texture-blend-multiply,
+  .folder-tab-panel-stack--texture-blend-multiply,
+  .folder--texture-blend-multiply,
+  .folder-attachment--texture-blend-multiply
+) {
+  --folder-paper-blend-mode-default: multiply;
+  --folder-paper-composite-mode-default: multiply;
+}
+
+:is(
+  .folder-tabs--texture-blend-screen,
+  .folder-binder--texture-blend-screen,
+  .folder-tab-panel-stack--texture-blend-screen,
+  .folder--texture-blend-screen,
+  .folder-attachment--texture-blend-screen
+) {
+  --folder-paper-blend-mode-default: screen;
+  --folder-paper-composite-mode-default: screen;
+}
+
+:is(
+  .folder-tabs--texture-blend-overlay,
+  .folder-binder--texture-blend-overlay,
+  .folder-tab-panel-stack--texture-blend-overlay,
+  .folder--texture-blend-overlay,
+  .folder-attachment--texture-blend-overlay
+) {
+  --folder-paper-blend-mode-default: overlay;
+  --folder-paper-composite-mode-default: overlay;
+}
+
+:is(
+  .folder-tabs--texture-blend-darken,
+  .folder-binder--texture-blend-darken,
+  .folder-tab-panel-stack--texture-blend-darken,
+  .folder--texture-blend-darken,
+  .folder-attachment--texture-blend-darken
+) {
+  --folder-paper-blend-mode-default: darken;
+  --folder-paper-composite-mode-default: darken;
+}
+
+:is(
+  .folder-tabs--texture-blend-lighten,
+  .folder-binder--texture-blend-lighten,
+  .folder-tab-panel-stack--texture-blend-lighten,
+  .folder--texture-blend-lighten,
+  .folder-attachment--texture-blend-lighten
+) {
+  --folder-paper-blend-mode-default: lighten;
+  --folder-paper-composite-mode-default: lighten;
+}
+
+:is(
+  .folder-tabs--texture-blend-color-dodge,
+  .folder-binder--texture-blend-color-dodge,
+  .folder-tab-panel-stack--texture-blend-color-dodge,
+  .folder--texture-blend-color-dodge,
+  .folder-attachment--texture-blend-color-dodge
+) {
+  --folder-paper-blend-mode-default: color-dodge;
+  --folder-paper-composite-mode-default: color-dodge;
+}
+
+:is(
+  .folder-tabs--texture-blend-color-burn,
+  .folder-binder--texture-blend-color-burn,
+  .folder-tab-panel-stack--texture-blend-color-burn,
+  .folder--texture-blend-color-burn,
+  .folder-attachment--texture-blend-color-burn
+) {
+  --folder-paper-blend-mode-default: color-burn;
+  --folder-paper-composite-mode-default: color-burn;
+}
+
+:is(
+  .folder-tabs--texture-blend-hard-light,
+  .folder-binder--texture-blend-hard-light,
+  .folder-tab-panel-stack--texture-blend-hard-light,
+  .folder--texture-blend-hard-light,
+  .folder-attachment--texture-blend-hard-light
+) {
+  --folder-paper-blend-mode-default: hard-light;
+  --folder-paper-composite-mode-default: hard-light;
+}
+
+:is(
+  .folder-tabs--texture-blend-soft-light,
+  .folder-binder--texture-blend-soft-light,
+  .folder-tab-panel-stack--texture-blend-soft-light,
+  .folder--texture-blend-soft-light,
+  .folder-attachment--texture-blend-soft-light
+) {
+  --folder-paper-blend-mode-default: soft-light;
+  --folder-paper-composite-mode-default: soft-light;
+}
+
+:is(
+  .folder-tabs--texture-blend-difference,
+  .folder-binder--texture-blend-difference,
+  .folder-tab-panel-stack--texture-blend-difference,
+  .folder--texture-blend-difference,
+  .folder-attachment--texture-blend-difference
+) {
+  --folder-paper-blend-mode-default: difference;
+  --folder-paper-composite-mode-default: difference;
+}
+
+:is(
+  .folder-tabs--texture-blend-exclusion,
+  .folder-binder--texture-blend-exclusion,
+  .folder-tab-panel-stack--texture-blend-exclusion,
+  .folder--texture-blend-exclusion,
+  .folder-attachment--texture-blend-exclusion
+) {
+  --folder-paper-blend-mode-default: exclusion;
+  --folder-paper-composite-mode-default: exclusion;
+}
+
+:is(
+  .folder-tabs--texture-blend-hue,
+  .folder-binder--texture-blend-hue,
+  .folder-tab-panel-stack--texture-blend-hue,
+  .folder--texture-blend-hue,
+  .folder-attachment--texture-blend-hue
+) {
+  --folder-paper-blend-mode-default: hue;
+  --folder-paper-composite-mode-default: hue;
+}
+
+:is(
+  .folder-tabs--texture-blend-saturation,
+  .folder-binder--texture-blend-saturation,
+  .folder-tab-panel-stack--texture-blend-saturation,
+  .folder--texture-blend-saturation,
+  .folder-attachment--texture-blend-saturation
+) {
+  --folder-paper-blend-mode-default: saturation;
+  --folder-paper-composite-mode-default: saturation;
+}
+
+:is(
+  .folder-tabs--texture-blend-color,
+  .folder-binder--texture-blend-color,
+  .folder-tab-panel-stack--texture-blend-color,
+  .folder--texture-blend-color,
+  .folder-attachment--texture-blend-color
+) {
+  --folder-paper-blend-mode-default: color;
+  --folder-paper-composite-mode-default: color;
+}
+
+:is(
+  .folder-tabs--texture-blend-luminosity,
+  .folder-binder--texture-blend-luminosity,
+  .folder-tab-panel-stack--texture-blend-luminosity,
+  .folder--texture-blend-luminosity,
+  .folder-attachment--texture-blend-luminosity
+) {
+  --folder-paper-blend-mode-default: luminosity;
+  --folder-paper-composite-mode-default: luminosity;
+}
+
 .folder-tabs {
   --ft-size: 2.75rem;
   --ft-min-block-size: 2.75rem;
@@ -8,8 +290,8 @@
   --ft-radius: 0.5rem;
   --ft-gap: 0.25rem;
   --ft-padding: 0.5rem;
-  --ft-text: #f4f1eb;
-  --ft-muted: #a4a19a;
+  --ft-text: var(--folder-ink);
+  --ft-muted: var(--folder-ink-muted);
   --ft-border: #45433d;
   --ft-border-active: #79756c;
   --ft-surface: #20201e;
@@ -30,6 +312,10 @@
   isolation: isolate;
   scrollbar-width: none;
   color: var(--ft-text);
+}
+
+.folder-tabs--texture-paper {
+  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.5);
 }
 
 .folder-tabs::-webkit-scrollbar {
@@ -142,7 +428,7 @@
   z-index: calc(1 + var(--folder-tab-index, 0));
   border: 1px solid var(--ft-border);
   background: var(--ft-surface);
-  color: var(--ft-muted);
+  color: var(--folder-ink-muted);
   cursor: pointer;
   font: inherit;
   font-size: var(--ft-label-size);
@@ -185,7 +471,7 @@
   z-index: calc(30 + var(--folder-tab-index, 0));
   border-color: var(--ft-border-active);
   background: var(--ft-surface-active);
-  color: var(--ft-text);
+  color: var(--folder-ink);
 }
 
 .folder-tabs__tab:focus-visible {
@@ -431,6 +717,37 @@
   box-shadow:
     0.38rem 0.7rem 1.35rem rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.folder-tabs--texture-paper .folder-tabs__tab {
+  background-color: var(--ft-surface);
+  background-image:
+    var(--folder-paper-texture),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 44%);
+  background-blend-mode: var(--folder-paper-blend-mode), normal;
+  background-size: var(--folder-paper-texture-size), auto;
+}
+
+.folder-tabs--texture-paper .folder-tabs__tab:hover,
+.folder-tabs--texture-paper .folder-tabs__tab:focus-visible,
+.folder-tabs--texture-paper .folder-tabs__tab.is-active {
+  background-color: var(--ft-surface-active);
+}
+
+.folder-tabs--texture-paper.folder-tabs--vertical.folder-tabs--appearance-stack .folder-tabs__tab {
+  background-color: var(--ft-surface);
+  background-image:
+    var(--folder-paper-texture),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 42%);
+  background-size: var(--folder-paper-texture-size), auto, auto;
+}
+
+.folder-tabs--texture-paper.folder-tabs--vertical.folder-tabs--edge-right.folder-tabs--appearance-stack .folder-tabs__tab {
+  background-image:
+    var(--folder-paper-texture),
+    linear-gradient(270deg, rgba(255, 255, 255, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 42%);
 }
 
 .folder-tabs--vertical .folder-tabs__tab::before {
@@ -681,13 +998,19 @@
   .folder-tabs__icon,
   .folder-tabs__label,
   .folder-tabs__count,
-  .folder-tabs__lock {
+  .folder-tabs__lock,
+  .folder-attachment__sheet::after,
+  .folder-attachment__content::before,
+  .folder-attachment__tab::before {
     transition: none !important;
   }
 
   .folder-tabs__tab,
   .folder-tabs__tab::before,
-  .folder-tabs__tab::after {
+  .folder-tabs__tab::after,
+  .folder-attachment__sheet::after,
+  .folder-attachment__content::before,
+  .folder-attachment__tab::before {
     animation: none !important;
   }
 }
@@ -727,6 +1050,9 @@
   --folder-layer-two-y: 1.02rem;
   --folder-layer-one-opacity: 0.72;
   --folder-layer-two-opacity: 0.46;
+  --folder-paper-sheet-opacity: var(--folder-paper-sheet-opacity-custom, 0.42);
+  --folder-paper-content-opacity: var(--folder-paper-content-opacity-custom, 0.34);
+  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.38);
 
   position: relative;
   z-index: 0;
@@ -772,6 +1098,16 @@
   --folder-layer-border: color-mix(in srgb, var(--folder-tint) 46%, transparent);
 }
 
+.folder-binder--texture-paper,
+.folder-tab-panel-stack--texture-paper,
+.folder--texture-paper {
+  --folder-border: color-mix(in srgb, var(--folder-tint) 44%, #8a8374);
+  --folder-layer-border: color-mix(in srgb, var(--folder-tint) 44%, rgba(226, 219, 201, 0.28));
+  --folder-paper-sheet-opacity: var(--folder-paper-sheet-opacity-custom, 0.5);
+  --folder-paper-content-opacity: var(--folder-paper-content-opacity-custom, 0.3);
+  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.42);
+}
+
 .folder {
   position: relative;
   border: 1px solid var(--folder-border);
@@ -780,10 +1116,30 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 40%),
     var(--folder-surface);
   box-shadow: var(--folder-shadow);
+  color: var(--folder-ink);
   transition:
     box-shadow var(--folder-motion-duration) ease,
     filter var(--folder-motion-duration) ease,
     transform var(--folder-motion-duration) var(--folder-motion-ease);
+}
+
+.folder--texture-paper:not(.folder-attachment__folder)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--folder-paper-texture);
+  background-blend-mode: var(--folder-paper-blend-mode);
+  background-size: var(--folder-paper-texture-size);
+  filter: var(--folder-paper-filter);
+  mix-blend-mode: var(--folder-paper-composite-mode);
+  opacity: var(--folder-paper-sheet-opacity);
+  pointer-events: none;
+}
+
+.folder--texture-paper:not(.folder-attachment__folder) > * {
+  position: relative;
+  z-index: 1;
 }
 
 .folder::before {
@@ -791,6 +1147,7 @@
   position: absolute;
   inset-inline: 0.65rem;
   inset-block-start: 0;
+  z-index: 2;
   block-size: 1px;
   background: color-mix(in srgb, var(--folder-accent) 34%, transparent);
   opacity: 0.56;
@@ -810,6 +1167,18 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 38%),
     var(--folder-layer-surface);
   pointer-events: none;
+}
+
+.folder-binder--texture-paper::before,
+.folder-binder--texture-paper::after,
+.folder-tab-panel-stack--texture-paper::before,
+.folder-tab-panel-stack--texture-paper::after {
+  background-color: var(--folder-layer-surface);
+  background-image:
+    var(--folder-paper-texture),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 38%);
+  background-blend-mode: var(--folder-paper-blend-mode), normal;
+  background-size: var(--folder-paper-texture-size), auto;
 }
 
 .folder-binder::before,
@@ -927,6 +1296,8 @@
 }
 
 .folder-attachment {
+  --ft-text: var(--folder-ink);
+  --ft-muted: var(--folder-ink-muted);
   --folder-attached-tab-cross-size: var(--ft-size, 2.75rem);
   --folder-attached-tab-compact-size: var(--ft-size, 2.75rem);
   --folder-attached-tab-grab-size: var(--folder-attached-tab-cross-size);
@@ -958,6 +1329,9 @@
   --folder-piece-pull-y: 0px;
   --folder-piece-z: 1;
   --ft-label-rotation: -90deg;
+  --folder-paper-sheet-opacity: var(--folder-paper-sheet-opacity-custom, 0.48);
+  --folder-paper-content-opacity: var(--folder-paper-content-opacity-custom, 0.28);
+  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.36);
 
   display: block;
   min-inline-size: 0;
@@ -965,6 +1339,13 @@
   position: relative;
   z-index: 0;
   isolation: isolate;
+  color: var(--folder-ink);
+}
+
+.folder-attachment--texture-paper {
+  --folder-paper-sheet-opacity: var(--folder-paper-sheet-opacity-custom, 0.5);
+  --folder-paper-content-opacity: var(--folder-paper-content-opacity-custom, 0.3);
+  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.42);
 }
 
 .folder-attachment.is-pulled {
@@ -988,6 +1369,9 @@
   --folder-attached-tab-border-active: color-mix(in srgb, var(--folder-accent) 32%, var(--folder-border));
   --folder-attached-tab-surface: color-mix(in srgb, var(--folder-tint) 6%, var(--folder-surface));
   --folder-attached-tab-surface-active: color-mix(in srgb, var(--folder-tint) 22%, var(--folder-surface));
+  --folder-tab-transform-x: 0px;
+  --folder-tab-transform-y: 0px;
+  --folder-tab-rotate: 0deg;
 
   grid-area: 1 / 1;
   inset: 0;
@@ -1004,6 +1388,14 @@
 
 .folder-attachment--stack-rotation-pieces .folder-attachment__folder {
   transform: translate3d(var(--folder-piece-x), var(--folder-piece-y), 0px) rotate(var(--folder-piece-rotate));
+}
+
+.folder-attachment--stack-rotation-folders.folder-attachment--tab-rotation-rotated .folder-attachment__folder:not(.is-active) {
+  --folder-tab-rotate: var(--folder-tab-piece-rotate);
+}
+
+.folder-attachment--stack-rotation-pieces.folder-attachment--tab-rotation-straight .folder-attachment__folder:not(.is-active) {
+  --folder-tab-rotate: var(--folder-tab-counter-rotate);
 }
 
 .folder-attachment__folder::before {
@@ -1034,10 +1426,30 @@
   position: absolute;
   inset-inline: 0.65rem;
   inset-block-start: 0;
+  z-index: 2;
   block-size: 1px;
   background: color-mix(in srgb, var(--folder-accent) 34%, transparent);
   opacity: 0.56;
   pointer-events: none;
+}
+
+.folder-attachment__sheet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: var(--folder-paper-texture);
+  background-blend-mode: var(--folder-paper-blend-mode);
+  background-size: var(--folder-paper-texture-size);
+  filter: var(--folder-paper-filter);
+  mix-blend-mode: var(--folder-paper-composite-mode);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.folder-attachment--texture-paper .folder-attachment__sheet::after {
+  opacity: var(--folder-paper-sheet-opacity);
 }
 
 .folder-attachment--stack-rotation-folders .folder-attachment__sheet {
@@ -1078,7 +1490,8 @@
 .folder-attachment__folder:not(.is-active):focus-within .folder-attachment__tab,
 .folder-attachment__folder:not(.is-active).is-focused .folder-attachment__tab,
 .folder-attachment__folder:not(.is-active).is-hovered .folder-attachment__tab {
-  transform: translate3d(var(--folder-tab-hover-x), var(--folder-tab-hover-y), 0px);
+  --folder-tab-transform-x: var(--folder-tab-hover-x);
+  --folder-tab-transform-y: var(--folder-tab-hover-y);
 }
 
 .folder-attachment__folder.is-selecting,
@@ -1127,6 +1540,31 @@
   z-index: 1;
   inline-size: 100%;
   min-inline-size: 0;
+  color: var(--folder-ink);
+}
+
+.folder-attachment__content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--folder-paper-texture);
+  background-blend-mode: var(--folder-paper-blend-mode);
+  background-size: var(--folder-paper-texture-size);
+  filter: var(--folder-paper-filter);
+  mix-blend-mode: var(--folder-paper-composite-mode);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.folder-attachment--texture-paper .folder-attachment__content::before {
+  opacity: var(--folder-paper-content-opacity);
+}
+
+.folder-attachment--texture-paper .folder-attachment__content > * {
+  position: relative;
+  z-index: 1;
 }
 
 .folder-attachment--edge-top {
@@ -1233,6 +1671,7 @@
   overflow: hidden;
   padding: var(--folder-attached-tab-padding);
   text-align: start;
+  transform: translate3d(var(--folder-tab-transform-x), var(--folder-tab-transform-y), 0px) rotate(var(--folder-tab-rotate));
   white-space: nowrap;
   transition:
     background-color 160ms ease,
@@ -1251,6 +1690,26 @@
     transform var(--folder-motion-duration) var(--folder-motion-ease);
 }
 
+.folder-attachment__tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background-image: var(--folder-paper-texture);
+  background-blend-mode: var(--folder-paper-blend-mode);
+  background-size: var(--folder-paper-texture-size);
+  filter: var(--folder-paper-filter);
+  mix-blend-mode: var(--folder-paper-composite-mode);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.folder-attachment--texture-paper .folder-attachment__tab::before {
+  opacity: var(--folder-paper-tab-opacity);
+}
+
 .folder-attachment__tab:hover,
 .folder-attachment__tab:focus-visible,
 .folder-attachment__tab.is-active,
@@ -1263,6 +1722,16 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.075), transparent 48%),
     var(--folder-attached-tab-surface-active);
   color: var(--ft-text);
+}
+
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab,
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab:hover,
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab:focus-visible,
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-active,
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-expanded,
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-hovered,
+.folder-attachment--stack-rotation-pieces .folder-attachment__tab.is-open {
+  border-color: transparent;
 }
 
 .folder-attachment__tab:focus-visible {
@@ -1282,6 +1751,7 @@
 
 .folder-attachment__tab-icon {
   position: absolute;
+  z-index: 1;
   display: inline-flex;
   color: currentColor;
   opacity: 0.8;
@@ -1296,6 +1766,7 @@
 .folder-attachment__tab-count,
 .folder-attachment__tab-lock {
   position: absolute;
+  z-index: 1;
   opacity: 0;
   visibility: hidden;
 }
@@ -1306,7 +1777,7 @@
 }
 
 .folder-attachment__tab-count {
-  color: var(--ft-muted);
+  color: var(--folder-ink-muted);
   font-family: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, monospace;
   font-size: 0.75rem;
 }
