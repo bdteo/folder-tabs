@@ -92,6 +92,7 @@ const caseTabs: FolderTabItem[] = [
 
 const defaultClosingTint = '#7890a3';
 const closingTint = ref(defaultClosingTint);
+const closingTintInput = ref(defaultClosingTint.toUpperCase());
 const closingColorPresets = [
   { label: 'Steel', color: defaultClosingTint },
   { label: 'Harbor', color: '#5f7896' },
@@ -370,11 +371,52 @@ function setTextColor(mode: FolderSurfaceTextColor) {
 }
 
 function setClosingTint(color: string) {
-  const normalizedColor = color.trim().toLowerCase();
+  const normalizedColor = normalizeHexColorInput(color);
 
-  if (/^#[0-9a-f]{6}$/.test(normalizedColor)) {
+  if (normalizedColor) {
+    closingTint.value = normalizedColor;
+    closingTintInput.value = normalizedColor.toUpperCase();
+  }
+}
+
+function handleClosingTintTextInput(event: Event) {
+  if (!(event.target instanceof HTMLInputElement)) {
+    return;
+  }
+
+  closingTintInput.value = event.target.value;
+
+  const normalizedColor = normalizeHexColorInput(event.target.value);
+
+  if (normalizedColor) {
     closingTint.value = normalizedColor;
   }
+}
+
+function handleClosingTintTextBlur() {
+  const normalizedColor = normalizeHexColorInput(closingTintInput.value);
+
+  if (normalizedColor) {
+    setClosingTint(normalizedColor);
+    return;
+  }
+
+  closingTintInput.value = closingTint.value.toUpperCase();
+}
+
+function handleClosingColorInput(event: Event) {
+  if (event.target instanceof HTMLInputElement) {
+    setClosingTint(event.target.value);
+  }
+}
+
+function normalizeHexColorInput(color: string): string | null {
+  const value = color.trim();
+  const normalizedColor = value.startsWith('#') ? value : `#${value}`;
+
+  return /^#[0-9a-f]{6}$/i.test(normalizedColor)
+    ? normalizedColor.toLowerCase()
+    : null;
 }
 
 const activePrimary = computed(() => primaryTabs.value.find((tab) => String(tab.key) === primaryActive.value) ?? null);
@@ -639,12 +681,23 @@ function normalizeDemoTextureLayerMode(value: string | null): FolderSurfaceTextu
             <label class="demo-folder__color-field">
               <span>Closing tint</span>
               <input
-                v-model="closingTint"
+                :value="closingTint"
                 type="color"
                 aria-label="Closing folder tint"
+                @input="handleClosingColorInput"
               >
             </label>
-            <span class="demo-folder__color-value">{{ closingTint.toUpperCase() }}</span>
+            <input
+              class="demo-folder__color-value"
+              :value="closingTintInput"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Closing folder hex tint"
+              @input="handleClosingTintTextInput"
+              @blur="handleClosingTintTextBlur"
+            >
             <div class="demo-folder__color-presets" aria-label="Closing tint presets">
               <button
                 v-for="swatch in closingColorPresets"

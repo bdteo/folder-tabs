@@ -292,7 +292,16 @@ select {
 }
 
 .demo-folder__color-value {
-  padding: 0.58rem 0.72rem;
+  inline-size: 7.4rem;
+  min-block-size: 2.15rem;
+  padding: 0 0.72rem;
+  font: inherit;
+}
+
+.demo-folder__color-value:focus {
+  border-color: color-mix(in srgb, var(--demo-closing-tint) 64%, var(--folder-ink, #fff8ec));
+  outline: 2px solid color-mix(in srgb, var(--demo-closing-tint) 44%, transparent);
+  outline-offset: 0.12rem;
 }
 
 .demo-folder__color-reset {
