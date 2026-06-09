@@ -15,6 +15,9 @@ export type FolderTone = 'slate' | 'moss' | 'teal' | 'copper' | 'violet';
 export type FolderStackRotation = 'none' | 'folders' | 'pieces';
 export type FolderTabRotation = 'straight' | 'rotated';
 export type FolderSurfaceTexture = 'none' | 'paper';
+export type FolderSurfaceTextureLayer = 'sheet' | 'content' | 'tab';
+export type FolderSurfaceTextureLayerPreset = 'all' | 'shell' | 'sheet' | 'content' | 'tab' | 'none';
+export type FolderSurfaceTextureLayers = FolderSurfaceTextureLayerPreset | FolderSurfaceTextureLayer[];
 export type FolderSurfaceTextColor = 'auto' | 'light' | 'dark' | 'inherit';
 export type FolderSurfaceTextureBlendMode =
   | 'auto'
@@ -64,6 +67,15 @@ const folderTones = new Set<FolderTone>(['slate', 'moss', 'teal', 'copper', 'vio
 const folderStackRotations = new Set<FolderStackRotation>(['none', 'folders', 'pieces']);
 const folderTabRotations = new Set<FolderTabRotation>(['straight', 'rotated']);
 const folderSurfaceTextures = new Set<FolderSurfaceTexture>(['none', 'paper']);
+const folderSurfaceTextureLayers = new Set<FolderSurfaceTextureLayer>(['sheet', 'content', 'tab']);
+const folderSurfaceTextureLayerPresets: Record<FolderSurfaceTextureLayerPreset, FolderSurfaceTextureLayer[]> = {
+  all: ['sheet', 'content', 'tab'],
+  shell: ['sheet', 'tab'],
+  sheet: ['sheet'],
+  content: ['content'],
+  tab: ['tab'],
+  none: [],
+};
 const folderSurfaceTextColors = new Set<FolderSurfaceTextColor>(['auto', 'light', 'dark', 'inherit']);
 const folderSurfaceTextureBlendModes = new Set<FolderSurfaceTextureBlendMode>([
   'auto',
@@ -324,6 +336,33 @@ export function normalizeFolderSurfaceTexture(texture: unknown): FolderSurfaceTe
   return folderSurfaceTextures.has(texture as FolderSurfaceTexture)
     ? texture as FolderSurfaceTexture
     : 'none';
+}
+
+export function normalizeFolderSurfaceTextureLayers(layers: unknown): FolderSurfaceTextureLayer[] {
+  if (Array.isArray(layers)) {
+    return dedupeFolderSurfaceTextureLayers(layers);
+  }
+
+  if (typeof layers === 'string' && layers in folderSurfaceTextureLayerPresets) {
+    return [...folderSurfaceTextureLayerPresets[layers as FolderSurfaceTextureLayerPreset]];
+  }
+
+  return [...folderSurfaceTextureLayerPresets.all];
+}
+
+function dedupeFolderSurfaceTextureLayers(layers: unknown[]): FolderSurfaceTextureLayer[] {
+  const normalized: FolderSurfaceTextureLayer[] = [];
+
+  for (const layer of layers) {
+    if (
+      folderSurfaceTextureLayers.has(layer as FolderSurfaceTextureLayer)
+      && !normalized.includes(layer as FolderSurfaceTextureLayer)
+    ) {
+      normalized.push(layer as FolderSurfaceTextureLayer);
+    }
+  }
+
+  return normalized;
 }
 
 export function normalizeFolderSurfaceTextColor(textColor: unknown): FolderSurfaceTextColor {

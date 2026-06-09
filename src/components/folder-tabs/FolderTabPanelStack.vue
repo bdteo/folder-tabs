@@ -9,12 +9,14 @@ import {
   normalizeFolderLayerCount,
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTextureLayers,
   normalizeFolderSurfaceTexture,
   normalizeFolderTabEdge,
   normalizeFolderTabOrientation,
   normalizeFolderTone,
   type FolderSurfaceTextColor,
   type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTextureLayers,
   type FolderSurfaceTexture,
   type FolderTabEdge,
   type FolderTabOrientation,
@@ -30,6 +32,7 @@ const props = withDefaults(defineProps<{
   activeIndex?: number;
   tone?: FolderTone;
   texture?: FolderSurfaceTexture;
+  textureLayers?: FolderSurfaceTextureLayers;
   textureBlendMode?: FolderSurfaceTextureBlendMode;
   textColor?: FolderSurfaceTextColor;
   pulled?: boolean;
@@ -41,6 +44,7 @@ const props = withDefaults(defineProps<{
   activeIndex: 0,
   tone: 'slate',
   texture: 'none',
+  textureLayers: 'all',
   textureBlendMode: 'auto',
   textColor: 'auto',
   pulled: false,
@@ -52,6 +56,7 @@ const physicalOrientation = computed(() => getFolderTabOrientationForEdge(normal
 const normalizedDepth = computed(() => normalizeFolderBinderDepth(props.depth));
 const normalizedTone = computed(() => normalizeFolderTone(props.tone));
 const normalizedTexture = computed(() => normalizeFolderSurfaceTexture(props.texture));
+const normalizedTextureLayers = computed(() => normalizeFolderSurfaceTextureLayers(props.textureLayers));
 const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
 const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 const boundedLayers = computed(() => normalizeFolderLayerCount(props.layers));
@@ -66,6 +71,7 @@ const legacyClasses = computed(() => [
   `folder-tab-panel-stack--layers-${boundedLayers.value}`,
   `folder-tab-panel-stack--tone-${normalizedTone.value}`,
   `folder-tab-panel-stack--texture-${normalizedTexture.value}`,
+  ...normalizedTextureLayers.value.map((layer) => `folder-tab-panel-stack--texture-layer-${layer}`),
   `folder-tab-panel-stack--texture-blend-${normalizedTextureBlendMode.value}`,
   `folder-tab-panel-stack--text-color-${normalizedTextColor.value}`,
   { 'is-pulled': isPulled.value },
@@ -82,6 +88,7 @@ const legacyClasses = computed(() => [
     :active-index="boundedActiveIndex"
     :tone="normalizedTone"
     :texture="normalizedTexture"
+    :texture-layers="normalizedTextureLayers"
     :texture-blend-mode="normalizedTextureBlendMode"
     :text-color="normalizedTextColor"
     :pulled="isPulled"
@@ -89,6 +96,7 @@ const legacyClasses = computed(() => [
     <Folder
       :tone="normalizedTone"
       :texture="normalizedTexture"
+      :texture-layers="normalizedTextureLayers"
       :texture-blend-mode="normalizedTextureBlendMode"
       :text-color="normalizedTextColor"
     >

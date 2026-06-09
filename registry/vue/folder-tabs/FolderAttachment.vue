@@ -35,6 +35,7 @@ import {
   normalizeFolderStackRotation,
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTextureLayers,
   normalizeFolderSurfaceTexture,
   normalizeFolderTone,
   normalizeFolderTabRotation,
@@ -43,6 +44,7 @@ import {
   type FolderTabRotation,
   type FolderSurfaceTextColor,
   type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTextureLayers,
   type FolderSurfaceTexture,
   type FolderTabActivation,
   type FolderTabAppearance,
@@ -73,6 +75,7 @@ const props = withDefaults(defineProps<{
   layers?: number;
   tone?: FolderTone;
   texture?: FolderSurfaceTexture;
+  textureLayers?: FolderSurfaceTextureLayers;
   textureBlendMode?: FolderSurfaceTextureBlendMode;
   textColor?: FolderSurfaceTextColor;
   stackRotation?: FolderStackRotation | null;
@@ -96,6 +99,7 @@ const props = withDefaults(defineProps<{
   layers: 2,
   tone: 'slate',
   texture: 'none',
+  textureLayers: 'all',
   textureBlendMode: 'auto',
   textColor: 'auto',
   stackRotation: null,
@@ -175,6 +179,7 @@ const normalizedStackRotation = computed(() => (
 ));
 const normalizedTabRotation = computed(() => normalizeFolderTabRotation(props.tabRotation));
 const normalizedTexture = computed(() => normalizeFolderSurfaceTexture(props.texture));
+const normalizedTextureLayers = computed(() => normalizeFolderSurfaceTextureLayers(props.textureLayers));
 const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
 const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 const normalizedTone = computed(() => normalizeFolderTone(props.tone));
@@ -238,6 +243,7 @@ const rootClasses = computed(() => [
   `folder-attachment--stack-rotation-${normalizedStackRotation.value}`,
   `folder-attachment--tab-rotation-${normalizedTabRotation.value}`,
   `folder-attachment--texture-${normalizedTexture.value}`,
+  ...normalizedTextureLayers.value.map((layer) => `folder-attachment--texture-layer-${layer}`),
   `folder-attachment--texture-blend-${normalizedTextureBlendMode.value}`,
   `folder-attachment--text-color-${normalizedTextColor.value}`,
   {
@@ -869,6 +875,7 @@ function clearFocusedTab(tab: FolderTabItem): void {
       :active-index="activeIndex"
       :tone="normalizedTone"
       :texture="normalizedTexture"
+      :texture-layers="normalizedTextureLayers"
       :texture-blend-mode="normalizedTextureBlendMode"
       :text-color="normalizedTextColor"
       :pulled="motion.isPulled.value"
@@ -886,6 +893,7 @@ function clearFocusedTab(tab: FolderTabItem): void {
           :style="folderStyle(tab, tabIndex)"
           :tone="folderTone(tab)"
           :texture="normalizedTexture"
+          :texture-layers="normalizedTextureLayers"
           :texture-blend-mode="normalizedTextureBlendMode"
           :text-color="normalizedTextColor"
         >

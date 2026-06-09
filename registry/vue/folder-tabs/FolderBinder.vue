@@ -7,6 +7,7 @@ import {
   normalizeFolderLayerCount,
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTextureLayers,
   normalizeFolderSurfaceTexture,
   normalizeFolderTabEdge,
   normalizeFolderTabOrientation,
@@ -14,6 +15,7 @@ import {
   type FolderBinderDepth,
   type FolderSurfaceTextColor,
   type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTextureLayers,
   type FolderSurfaceTexture,
   type FolderTabEdge,
   type FolderTabOrientation,
@@ -28,6 +30,7 @@ const props = withDefaults(defineProps<{
   activeIndex?: number;
   tone?: FolderTone;
   texture?: FolderSurfaceTexture;
+  textureLayers?: FolderSurfaceTextureLayers;
   textureBlendMode?: FolderSurfaceTextureBlendMode;
   textColor?: FolderSurfaceTextColor;
   pulled?: boolean;
@@ -39,6 +42,7 @@ const props = withDefaults(defineProps<{
   activeIndex: 0,
   tone: 'slate',
   texture: 'none',
+  textureLayers: 'all',
   textureBlendMode: 'auto',
   textColor: 'auto',
   pulled: false,
@@ -50,6 +54,7 @@ const physicalOrientation = computed(() => getFolderTabOrientationForEdge(normal
 const normalizedDepth = computed(() => normalizeFolderBinderDepth(props.depth));
 const normalizedTone = computed(() => normalizeFolderTone(props.tone));
 const normalizedTexture = computed(() => normalizeFolderSurfaceTexture(props.texture));
+const normalizedTextureLayers = computed(() => normalizeFolderSurfaceTextureLayers(props.textureLayers));
 const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
 const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 const boundedLayers = computed(() => normalizeFolderLayerCount(props.layers));
@@ -64,6 +69,7 @@ const rootClasses = computed(() => [
   `folder-binder--layers-${boundedLayers.value}`,
   `folder-binder--tone-${normalizedTone.value}`,
   `folder-binder--texture-${normalizedTexture.value}`,
+  ...normalizedTextureLayers.value.map((layer) => `folder-binder--texture-layer-${layer}`),
   `folder-binder--texture-blend-${normalizedTextureBlendMode.value}`,
   `folder-binder--text-color-${normalizedTextColor.value}`,
   { 'is-pulled': isPulled.value },

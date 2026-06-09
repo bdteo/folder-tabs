@@ -15,9 +15,11 @@ import {
   normalizeFolderTabKeyForLookup,
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
+  normalizeFolderSurfaceTextureLayers,
   normalizeFolderSurfaceTexture,
   type FolderSurfaceTextColor,
   type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTextureLayers,
   type FolderSurfaceTexture,
   type FolderTabActivation,
   type FolderTabAppearance,
@@ -44,6 +46,7 @@ const props = withDefaults(defineProps<{
   activationMotionDuration?: number;
   pulledKey?: FolderTabKey | null;
   texture?: FolderSurfaceTexture;
+  textureLayers?: FolderSurfaceTextureLayers;
   textureBlendMode?: FolderSurfaceTextureBlendMode;
   textColor?: FolderSurfaceTextColor;
   ariaLabel: string;
@@ -60,6 +63,7 @@ const props = withDefaults(defineProps<{
   activationMotionDuration: 420,
   pulledKey: null,
   texture: 'none',
+  textureLayers: 'all',
   textureBlendMode: 'auto',
   textColor: 'auto',
   panelIdForTab: null,
@@ -98,6 +102,7 @@ const normalizedDensity = computed(() => normalizeFolderTabDensity(props.density
 const normalizedExpandOn = computed(() => normalizeFolderTabExpandOn(props.expandOn));
 const normalizedGravity = computed(() => normalizeFolderTabGravity(props.gravity));
 const normalizedTexture = computed(() => normalizeFolderSurfaceTexture(props.texture));
+const normalizedTextureLayers = computed(() => normalizeFolderSurfaceTextureLayers(props.textureLayers));
 const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
 const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 
@@ -111,6 +116,7 @@ const rootClasses = computed(() => [
   `folder-tabs--gravity-${normalizedGravity.value}`,
   `folder-tabs--appearance-${normalizedAppearance.value}`,
   `folder-tabs--texture-${normalizedTexture.value}`,
+  ...normalizedTextureLayers.value.map((layer) => `folder-tabs--texture-layer-${layer}`),
   `folder-tabs--texture-blend-${normalizedTextureBlendMode.value}`,
   `folder-tabs--text-color-${normalizedTextColor.value}`,
 ]);

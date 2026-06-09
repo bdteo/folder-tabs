@@ -719,7 +719,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-.folder-tabs--texture-paper .folder-tabs__tab {
+.folder-tabs--texture-paper.folder-tabs--texture-layer-tab .folder-tabs__tab {
   background-color: var(--ft-surface);
   background-image:
     var(--folder-paper-texture),
@@ -728,13 +728,13 @@
   background-size: var(--folder-paper-texture-size), auto;
 }
 
-.folder-tabs--texture-paper .folder-tabs__tab:hover,
-.folder-tabs--texture-paper .folder-tabs__tab:focus-visible,
-.folder-tabs--texture-paper .folder-tabs__tab.is-active {
+.folder-tabs--texture-paper.folder-tabs--texture-layer-tab .folder-tabs__tab:hover,
+.folder-tabs--texture-paper.folder-tabs--texture-layer-tab .folder-tabs__tab:focus-visible,
+.folder-tabs--texture-paper.folder-tabs--texture-layer-tab .folder-tabs__tab.is-active {
   background-color: var(--ft-surface-active);
 }
 
-.folder-tabs--texture-paper.folder-tabs--vertical.folder-tabs--appearance-stack .folder-tabs__tab {
+.folder-tabs--texture-paper.folder-tabs--texture-layer-tab.folder-tabs--vertical.folder-tabs--appearance-stack .folder-tabs__tab {
   background-color: var(--ft-surface);
   background-image:
     var(--folder-paper-texture),
@@ -743,7 +743,7 @@
   background-size: var(--folder-paper-texture-size), auto, auto;
 }
 
-.folder-tabs--texture-paper.folder-tabs--vertical.folder-tabs--edge-right.folder-tabs--appearance-stack .folder-tabs__tab {
+.folder-tabs--texture-paper.folder-tabs--texture-layer-tab.folder-tabs--vertical.folder-tabs--edge-right.folder-tabs--appearance-stack .folder-tabs__tab {
   background-image:
     var(--folder-paper-texture),
     linear-gradient(270deg, rgba(255, 255, 255, 0.07), transparent 58%),
@@ -1123,7 +1123,7 @@
     transform var(--folder-motion-duration) var(--folder-motion-ease);
 }
 
-.folder--texture-paper:not(.folder-attachment__folder)::after {
+.folder--texture-paper.folder--texture-layer-sheet:not(.folder-attachment__folder)::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -1137,7 +1137,7 @@
   pointer-events: none;
 }
 
-.folder--texture-paper:not(.folder-attachment__folder) > * {
+.folder--texture-paper.folder--texture-layer-sheet:not(.folder-attachment__folder) > * {
   position: relative;
   z-index: 1;
 }
@@ -1169,10 +1169,10 @@
   pointer-events: none;
 }
 
-.folder-binder--texture-paper::before,
-.folder-binder--texture-paper::after,
-.folder-tab-panel-stack--texture-paper::before,
-.folder-tab-panel-stack--texture-paper::after {
+.folder-binder--texture-paper.folder-binder--texture-layer-sheet::before,
+.folder-binder--texture-paper.folder-binder--texture-layer-sheet::after,
+.folder-tab-panel-stack--texture-paper.folder-tab-panel-stack--texture-layer-sheet::before,
+.folder-tab-panel-stack--texture-paper.folder-tab-panel-stack--texture-layer-sheet::after {
   background-color: var(--folder-layer-surface);
   background-image:
     var(--folder-paper-texture),
@@ -1448,7 +1448,7 @@
   transition: opacity 160ms ease;
 }
 
-.folder-attachment--texture-paper .folder-attachment__sheet::after {
+.folder-attachment--texture-paper.folder-attachment--texture-layer-sheet .folder-attachment__sheet::after {
   opacity: var(--folder-paper-sheet-opacity);
 }
 
@@ -1558,11 +1558,11 @@
   transition: opacity 160ms ease;
 }
 
-.folder-attachment--texture-paper .folder-attachment__content::before {
+.folder-attachment--texture-paper.folder-attachment--texture-layer-content .folder-attachment__content::before {
   opacity: var(--folder-paper-content-opacity);
 }
 
-.folder-attachment--texture-paper .folder-attachment__content > * {
+.folder-attachment--texture-paper.folder-attachment--texture-layer-content .folder-attachment__content > * {
   position: relative;
   z-index: 1;
 }
@@ -1706,7 +1706,7 @@
   transition: opacity 160ms ease;
 }
 
-.folder-attachment--texture-paper .folder-attachment__tab::before {
+.folder-attachment--texture-paper.folder-attachment--texture-layer-tab .folder-attachment__tab::before {
   opacity: var(--folder-paper-tab-opacity);
 }
 

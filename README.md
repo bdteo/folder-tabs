@@ -138,6 +138,7 @@ Most navigation props are shared by `FolderTabs` and `FolderAttachment`.
 | `gravity` | `start \| center \| end` | `center` | Sets vertical transform origin for the standalone rail. In `FolderAttachment`, `start` or `end` can also be used as the fallback slot group along each folder edge. |
 | `appearance` | `rail \| stack` | `rail` | `stack` makes vertical tabs cascade like physical folder dividers. |
 | `texture` | `none \| paper` | `none` | Adds a procedural, tileable paper grain to tab handles. `FolderAttachment` also applies it to the binder, folder sheets, and content surface. |
+| `textureLayers` | `all \| shell \| sheet \| content \| tab \| none \| ('sheet' \| 'content' \| 'tab')[]` | `all` | Chooses which physical layers receive paper texture. `shell` means folder sheets plus tab handles, leaving slotted content clean. Standalone rails only paint the `tab` layer. |
 | `textureBlendMode` | CSS blend mode \| `auto` | `auto` | Controls how the paper texture blends into the tab/folder surface. `auto` preserves the built-in paper recipe; explicit values include `normal`, `multiply`, `overlay`, `soft-light`, `hard-light`, `color-burn`, and other standard CSS blend modes. |
 | `textColor` | `auto \| light \| dark \| inherit` | `auto` | Controls tab/folder ink color for labels, counts, icons, and slotted folder content. `auto` keeps light ink for darkening blend modes and switches to dark ink for brightening modes such as `screen`, `lighten`, and `color-dodge`. |
 | `ariaLabel` | `string` | required | Label for the tablist. |
@@ -161,6 +162,7 @@ checker as a native ARIA attribute, not as this required component prop.
 | `layers` | `number` | `2` | Bounded by `FolderBinder` to `0`, `1`, or `2` visible underlayers. |
 | `tone` | `slate \| moss \| teal \| copper \| violet` | `slate` | Fallback tint for the binder and folders without their own `tone`. |
 | `texture` | `none \| paper` | `none` | Adds a procedural, tileable paper grain to the binder, folder sheets, content surface, and attached tab handles without requiring an image asset. |
+| `textureLayers` | `all \| shell \| sheet \| content \| tab \| none \| ('sheet' \| 'content' \| 'tab')[]` | `all` | Chooses where the paper layer is painted. Use `shell` for media galleries or app surfaces where the binder/tabs should feel like paper but the content area should stay owned by the app. |
 | `textureBlendMode` | CSS blend mode \| `auto` | `auto` | Controls the paper overlay/background blending for the whole physical stack. |
 | `textColor` | `auto \| light \| dark \| inherit` | `auto` | Controls the ink color for the whole physical stack. Use `dark` for known light paper themes and `light` for known dark themes. |
 | `stackRotation` | `none \| folders \| pieces` | `none` | Controls optional tucked-stack rotation. `folders` rotates the background folder sheets; `pieces` rotates the whole folder piece. |
@@ -194,11 +196,12 @@ Use `Folder` for the active content surface and `FolderBinder` for the physical 
 | `activeIndex` | `number` | `0` | Exposed as a CSS variable for app-specific position-dependent styling. |
 | `tone` | `slate \| moss \| teal \| copper \| violet` | `slate` | Tints the folder and binder layers. |
 | `texture` | `none \| paper` | `none` | Adds the same procedural paper grain used by `FolderAttachment` to standalone binder/folder compositions. |
+| `textureLayers` | `all \| shell \| sheet \| content \| tab \| none \| ('sheet' \| 'content' \| 'tab')[]` | `all` | Chooses where the paper layer is painted. `FolderBinder` and standalone `Folder` primarily use `sheet`; compatibility wrappers also forward the setting to their child pieces. |
 | `textureBlendMode` | CSS blend mode \| `auto` | `auto` | Controls how that paper grain blends into standalone binder/folder surfaces. |
 | `textColor` | `auto \| light \| dark \| inherit` | `auto` | Controls standalone binder/folder ink color. |
 | `pulled` | `boolean` | `false` | Raises the binder/front layer for a pulled stack. It does not apply the outward pull transform by itself; `FolderAttachment` owns the tab-and-folder pull motion. |
 
-`Folder` accepts `tone` so the content surface matches its binder. `FolderAttachment` also accepts `tone` as a fallback, while each `FolderTabItem` can set its own `tone` to make individual folders in a stack visually distinct. `texture="paper"` works out of the box with a CSS-generated fiber grain, and the package also ships a small set of image-backed paper presets for stronger material texture. Use `textureBlendMode` when the same texture should sink into the surface differently, for example `multiply` for darker paper bite or `soft-light` for a gentler cardstock feel. `textColor="auto"` uses a CSS heuristic: darkening modes keep light ink, while brightening modes use dark ink. When an app knows its surface is light or dark, `textColor="dark"` or `textColor="light"` is the explicit override. `FolderTabPanelStack` remains available as a compatibility wrapper around `FolderBinder` + `Folder`.
+`Folder` accepts `tone` so the content surface matches its binder. `FolderAttachment` also accepts `tone` as a fallback, while each `FolderTabItem` can set its own `tone` to make individual folders in a stack visually distinct. `texture="paper"` works out of the box with a CSS-generated fiber grain, and the package also ships a small set of image-backed paper presets for stronger material texture. Use `textureLayers` when the app surface and the physical shell need different material treatment: `all` preserves the full paper recipe, `shell` paints only the sheets and handles, `content` paints only the active content surface, and arrays such as `['sheet', 'tab']` are accepted for explicit control. This is especially useful for photo galleries, maps, and document previews where the content should not inherit the binder grain. Use `textureBlendMode` when the same texture should sink into the surface differently, for example `multiply` for darker paper bite or `soft-light` for a gentler cardstock feel. `textColor="auto"` uses a CSS heuristic: darkening modes keep light ink, while brightening modes use dark ink. When an app knows its surface is light or dark, `textColor="dark"` or `textColor="light"` is the explicit override. `FolderTabPanelStack` remains available as a compatibility wrapper around `FolderBinder` + `Folder`.
 
 Image-backed paper textures are first-class package assets. Import a preset style
 and bind it to the same element that receives `texture="paper"`:
@@ -225,6 +228,7 @@ const paperStyle = getFolderPaperTextureStyle('paper05HybridStrong');
     :tabs="tabs"
     ariaLabel="Paper folders"
     texture="paper"
+    textureLayers="shell"
     textureBlendMode="color-burn"
     :style="paperStyle"
   >
@@ -323,8 +327,9 @@ Use `texture=fiber`, `texture=watercolor`, `texture=paper03HybridStrong`,
 `texture=paper05HybridStrongRepeat` to open the demo directly in one of the
 paper surface modes. Add `blend=multiply`, `blend=overlay`, `blend=soft-light`,
 `blend=color-burn`, or another supported blend value to compare texture
-compositing. Add `text=dark`, `text=light`, or `text=auto` to compare ink
-color behavior.
+compositing. Add `textureLayers=shell`, `textureLayers=content`, or
+`textureLayers=tab` to compare which physical paper layers are painted. Add
+`text=dark`, `text=light`, or `text=auto` to compare ink color behavior.
 
 `pnpm screenshots` refreshes the overview and attached-stack PNGs in
 `docs/screenshots/` from the real Vite demo using a temporary Chrome DevTools

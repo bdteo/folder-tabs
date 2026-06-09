@@ -12,6 +12,7 @@ import {
   type FolderStackRotation,
   type FolderSurfaceTextColor,
   type FolderSurfaceTextureBlendMode,
+  type FolderSurfaceTextureLayerPreset,
   type FolderSurfaceTexture,
   type FolderTabRotation,
   type FolderTabItem,
@@ -259,6 +260,14 @@ const surfaceModes: Array<{ key: DemoSurfaceMode; label: string }> = [
   { key: 'fiber', label: 'Fiber paper' },
   ...folderPaperTexturePresetOptions.map(({ key, label }) => ({ key, label })),
 ];
+const textureLayerModes: Array<{ key: FolderSurfaceTextureLayerPreset; label: string }> = [
+  { key: 'all', label: 'All layers' },
+  { key: 'shell', label: 'Shell only' },
+  { key: 'sheet', label: 'Sheets only' },
+  { key: 'content', label: 'Content only' },
+  { key: 'tab', label: 'Handles only' },
+  { key: 'none', label: 'No texture layer' },
+];
 const textureBlendModes: Array<{ key: FolderSurfaceTextureBlendMode; label: string }> = [
   { key: 'auto', label: 'Auto' },
   { key: 'normal', label: 'Normal' },
@@ -285,6 +294,8 @@ const tabRotationParam = getDemoParam(['tabRotation', 'handleRotation', 'handles
 const tabRotationMode = ref<FolderTabRotation>(normalizeFolderTabRotation(tabRotationParam));
 const surfaceModeParam = getDemoParam(['paperTexture', 'paper', 'texture', 'surface']);
 const surfaceMode = ref<DemoSurfaceMode>(normalizeDemoSurfaceMode(surfaceModeParam));
+const textureLayerParam = getDemoParam(['textureLayers', 'paperLayers', 'layers']);
+const textureLayerMode = ref<FolderSurfaceTextureLayerPreset>(normalizeDemoTextureLayerMode(textureLayerParam));
 const textureBlendModeParam = getDemoParam(['textureBlendMode', 'textureBlend', 'paperBlend', 'blend']);
 const textureBlendMode = ref<FolderSurfaceTextureBlendMode>(
   normalizeFolderSurfaceTextureBlendMode(textureBlendModeParam),
@@ -313,6 +324,14 @@ function setSurfaceMode(mode: DemoSurfaceMode) {
   replaceDemoQueryParam('texture', mode, {
     aliases: ['paperTexture', 'paper', 'surface'],
     defaultValue: 'clean',
+  });
+}
+
+function setTextureLayerMode(mode: FolderSurfaceTextureLayerPreset) {
+  textureLayerMode.value = mode;
+  replaceDemoQueryParam('textureLayers', mode, {
+    aliases: ['paperLayers', 'layers'],
+    defaultValue: 'all',
   });
 }
 
@@ -412,6 +431,25 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
 
   return 'clean';
 }
+
+function normalizeDemoTextureLayerMode(value: string | null): FolderSurfaceTextureLayerPreset {
+  if (
+    value === 'all'
+    || value === 'shell'
+    || value === 'sheet'
+    || value === 'content'
+    || value === 'tab'
+    || value === 'none'
+  ) {
+    return value;
+  }
+
+  if (value === 'handles' || value === 'tabs') {
+    return 'tab';
+  }
+
+  return 'all';
+}
 </script>
 
 <template>
@@ -507,6 +545,23 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
           </div>
 
           <div class="demo-controls__group">
+            <span class="demo-controls__label">Paper layers</span>
+            <div class="demo-mode-switch" aria-label="Texture layer mode">
+              <button
+                v-for="mode in textureLayerModes"
+                :key="mode.key"
+                :data-demo-control="`layers:${mode.key}`"
+                type="button"
+                :class="{ 'is-active': textureLayerMode === mode.key }"
+                :aria-pressed="textureLayerMode === mode.key"
+                @click="setTextureLayerMode(mode.key)"
+              >
+                {{ mode.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="demo-controls__group">
             <span class="demo-controls__label">Ink</span>
             <div class="demo-mode-switch" aria-label="Text color mode">
               <button
@@ -540,6 +595,7 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
         :stack-rotation="stackRotationMode"
         :tab-rotation="tabRotationMode"
         :texture="surfaceTexture"
+        :texture-layers="textureLayerMode"
         :texture-blend-mode="textureBlendMode"
         :text-color="textColor"
         :layers="2"
@@ -603,6 +659,7 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
           :stack-rotation="stackRotationMode"
           :tab-rotation="tabRotationMode"
           :texture="surfaceTexture"
+          :texture-layers="textureLayerMode"
           :texture-blend-mode="textureBlendMode"
           :text-color="textColor"
           :layers="2"
@@ -660,6 +717,7 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
           appearance="stack"
           expand-on="hover"
           :texture="surfaceTexture"
+          :texture-layers="textureLayerMode"
           :texture-blend-mode="textureBlendMode"
           :text-color="textColor"
         />

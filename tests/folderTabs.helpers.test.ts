@@ -34,6 +34,7 @@ import {
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
   normalizeFolderSurfaceTexture,
+  normalizeFolderSurfaceTextureLayers,
   normalizeFolderTabRotation,
   normalizeFolderTabActivation,
   normalizeFolderTabAppearance,
@@ -223,6 +224,11 @@ describe('folder tab helpers', () => {
     expect(normalizeFolderTabRotation('sideways')).toBe('straight');
     expect(normalizeFolderSurfaceTexture('paper')).toBe('paper');
     expect(normalizeFolderSurfaceTexture('linen')).toBe('none');
+    expect(normalizeFolderSurfaceTextureLayers('all')).toEqual(['sheet', 'content', 'tab']);
+    expect(normalizeFolderSurfaceTextureLayers('shell')).toEqual(['sheet', 'tab']);
+    expect(normalizeFolderSurfaceTextureLayers('none')).toEqual([]);
+    expect(normalizeFolderSurfaceTextureLayers(['tab', 'sheet', 'tab', 'smudge'])).toEqual(['tab', 'sheet']);
+    expect(normalizeFolderSurfaceTextureLayers('smudge')).toEqual(['sheet', 'content', 'tab']);
     expect(normalizeFolderSurfaceTextColor('dark')).toBe('dark');
     expect(normalizeFolderSurfaceTextColor('invisible')).toBe('auto');
     expect(normalizeFolderSurfaceTextureBlendMode('multiply')).toBe('multiply');

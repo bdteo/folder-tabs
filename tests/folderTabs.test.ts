@@ -12,6 +12,7 @@ import {
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
   normalizeFolderSurfaceTexture,
+  normalizeFolderSurfaceTextureLayers,
   normalizeFolderStackRotation,
   normalizeFolderTabRotation,
   type FolderTabItem,
@@ -1335,6 +1336,9 @@ describe('FolderTabs', () => {
     expect(rail.classes()).toContain('folder-tabs--gravity-center');
     expect(rail.classes()).toContain('folder-tabs--appearance-rail');
     expect(rail.classes()).toContain('folder-tabs--texture-none');
+    expect(rail.classes()).toContain('folder-tabs--texture-layer-sheet');
+    expect(rail.classes()).toContain('folder-tabs--texture-layer-content');
+    expect(rail.classes()).toContain('folder-tabs--texture-layer-tab');
     expect(rail.classes()).toContain('folder-tabs--texture-blend-auto');
     expect(rail.classes()).toContain('folder-tabs--text-color-auto');
     expect(rail.classes().some((className) => className.includes('diagonal') || className.includes('corner'))).toBe(false);
@@ -1376,6 +1380,9 @@ describe('FolderTabs', () => {
     expect(attached.classes()).toContain('folder-attachment--gravity-center');
     expect(attached.classes()).toContain('folder-attachment--appearance-rail');
     expect(attached.classes()).toContain('folder-attachment--texture-none');
+    expect(attached.classes()).toContain('folder-attachment--texture-layer-sheet');
+    expect(attached.classes()).toContain('folder-attachment--texture-layer-content');
+    expect(attached.classes()).toContain('folder-attachment--texture-layer-tab');
     expect(attached.classes()).toContain('folder-attachment--texture-blend-auto');
     expect(attached.classes()).toContain('folder-attachment--text-color-auto');
     expect(attached.classes()).toContain('folder-attachment--tab-rotation-straight');
@@ -1383,10 +1390,16 @@ describe('FolderTabs', () => {
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--layers-2');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--tone-slate');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-none');
+    expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-sheet');
+    expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-content');
+    expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-tab');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-auto');
     expect(attached.find('.folder-binder').classes()).toContain('folder-binder--text-color-auto');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--tone-slate');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-none');
+    expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-layer-sheet');
+    expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-layer-content');
+    expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-layer-tab');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-blend-auto');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder--text-color-auto');
     expect(attached.find('.folder-attachment__folder.is-active').classes()).toContain('folder-attachment__folder--edge-top');
@@ -1418,12 +1431,18 @@ describe('FolderTabs', () => {
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--layers-2');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--tone-slate');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-none');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-sheet');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-content');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-tab');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-auto');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--text-color-auto');
     expect(binder.find('.folder-binder').classes()).not.toContain('is-pulled');
     expect(binder.find('.folder-binder').attributes('style')).toContain('--folder-binder-active-index: 0');
     expect(binder.find('.folder').classes()).toContain('folder--tone-slate');
     expect(binder.find('.folder').classes()).toContain('folder--texture-none');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-layer-sheet');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-layer-content');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-layer-tab');
     expect(binder.find('.folder').classes()).toContain('folder--texture-blend-auto');
     expect(binder.find('.folder').classes()).toContain('folder--text-color-auto');
 
@@ -1450,6 +1469,9 @@ describe('FolderTabs', () => {
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--layers-2');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--tone-slate');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-none');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-layer-sheet');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-layer-content');
+    expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-layer-tab');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-blend-auto');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--text-color-auto');
     expect(panelStack.classes()).not.toContain('is-pulled');
@@ -2014,6 +2036,11 @@ describe('FolderTabs', () => {
       '  --folder-paper-tab-opacity: var(--folder-paper-tab-opacity-custom, 0.42);',
       '}',
     ].join('\n'));
+    expect(folderTabsCss).toContain('.folder-tabs--texture-paper.folder-tabs--texture-layer-tab .folder-tabs__tab {');
+    expect(folderTabsCss).toContain('.folder-binder--texture-paper.folder-binder--texture-layer-sheet::before,');
+    expect(folderTabsCss).toContain('.folder-attachment--texture-paper.folder-attachment--texture-layer-sheet .folder-attachment__sheet::after {');
+    expect(folderTabsCss).toContain('.folder-attachment--texture-paper.folder-attachment--texture-layer-content .folder-attachment__content::before {');
+    expect(folderTabsCss).toContain('.folder-attachment--texture-paper.folder-attachment--texture-layer-tab .folder-attachment__tab::before {');
 
     const rail = mount(FolderTabs, {
       props: {
@@ -2021,12 +2048,16 @@ describe('FolderTabs', () => {
         modelValue: 'photos',
         ariaLabel: 'Paper rail',
         texture: 'paper',
+        textureLayers: 'tab',
         textureBlendMode: 'multiply',
         textColor: 'dark',
       },
     });
 
     expect(rail.classes()).toContain('folder-tabs--texture-paper');
+    expect(rail.classes()).toContain('folder-tabs--texture-layer-tab');
+    expect(rail.classes()).not.toContain('folder-tabs--texture-layer-sheet');
+    expect(rail.classes()).not.toContain('folder-tabs--texture-layer-content');
     expect(rail.classes()).toContain('folder-tabs--texture-blend-multiply');
     expect(rail.classes()).toContain('folder-tabs--text-color-dark');
 
@@ -2036,6 +2067,7 @@ describe('FolderTabs', () => {
         modelValue: 'photos',
         ariaLabel: 'Paper attachment',
         texture: 'paper',
+        textureLayers: 'shell',
         textureBlendMode: 'multiply',
         textColor: 'dark',
       },
@@ -2045,23 +2077,34 @@ describe('FolderTabs', () => {
     });
 
     expect(attachment.classes()).toContain('folder-attachment--texture-paper');
+    expect(attachment.classes()).toContain('folder-attachment--texture-layer-sheet');
+    expect(attachment.classes()).toContain('folder-attachment--texture-layer-tab');
+    expect(attachment.classes()).not.toContain('folder-attachment--texture-layer-content');
     expect(attachment.classes()).toContain('folder-attachment--texture-blend-multiply');
     expect(attachment.classes()).toContain('folder-attachment--text-color-dark');
     expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--texture-paper');
+    expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-sheet');
+    expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-tab');
+    expect(attachment.find('.folder-binder').classes()).not.toContain('folder-binder--texture-layer-content');
     expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-multiply');
     expect(attachment.find('.folder-binder').classes()).toContain('folder-binder--text-color-dark');
     expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-paper');
+    expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-layer-sheet');
+    expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-layer-tab');
+    expect(attachment.find('.folder-attachment__folder.is-active').classes()).not.toContain('folder--texture-layer-content');
     expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--texture-blend-multiply');
     expect(attachment.find('.folder-attachment__folder.is-active').classes()).toContain('folder--text-color-dark');
 
     const binder = mount({
       render: () => h(FolderBinder, {
         texture: 'paper',
+        textureLayers: ['sheet'],
         textureBlendMode: 'multiply',
         textColor: 'dark',
       }, {
         default: () => h(Folder, {
           texture: 'paper',
+          textureLayers: ['sheet'],
           textureBlendMode: 'multiply',
           textColor: 'dark',
         }, () => 'Folder content'),
@@ -2069,15 +2112,22 @@ describe('FolderTabs', () => {
     });
 
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-paper');
+    expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-layer-sheet');
+    expect(binder.find('.folder-binder').classes()).not.toContain('folder-binder--texture-layer-content');
+    expect(binder.find('.folder-binder').classes()).not.toContain('folder-binder--texture-layer-tab');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-multiply');
     expect(binder.find('.folder-binder').classes()).toContain('folder-binder--text-color-dark');
     expect(binder.find('.folder').classes()).toContain('folder--texture-paper');
+    expect(binder.find('.folder').classes()).toContain('folder--texture-layer-sheet');
+    expect(binder.find('.folder').classes()).not.toContain('folder--texture-layer-content');
+    expect(binder.find('.folder').classes()).not.toContain('folder--texture-layer-tab');
     expect(binder.find('.folder').classes()).toContain('folder--texture-blend-multiply');
     expect(binder.find('.folder').classes()).toContain('folder--text-color-dark');
 
     const panelStack = mount(FolderTabPanelStack, {
       props: {
         texture: 'paper',
+        textureLayers: 'none',
         textureBlendMode: 'multiply',
         textColor: 'dark',
       },
@@ -2087,12 +2137,21 @@ describe('FolderTabs', () => {
     });
 
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-paper');
+    expect(panelStack.classes()).not.toContain('folder-tab-panel-stack--texture-layer-sheet');
+    expect(panelStack.classes()).not.toContain('folder-tab-panel-stack--texture-layer-content');
+    expect(panelStack.classes()).not.toContain('folder-tab-panel-stack--texture-layer-tab');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--texture-blend-multiply');
     expect(panelStack.classes()).toContain('folder-tab-panel-stack--text-color-dark');
     expect(panelStack.find('.folder-binder').classes()).toContain('folder-binder--texture-paper');
+    expect(panelStack.find('.folder-binder').classes()).not.toContain('folder-binder--texture-layer-sheet');
+    expect(panelStack.find('.folder-binder').classes()).not.toContain('folder-binder--texture-layer-content');
+    expect(panelStack.find('.folder-binder').classes()).not.toContain('folder-binder--texture-layer-tab');
     expect(panelStack.find('.folder-binder').classes()).toContain('folder-binder--texture-blend-multiply');
     expect(panelStack.find('.folder-binder').classes()).toContain('folder-binder--text-color-dark');
     expect(panelStack.find('.folder').classes()).toContain('folder--texture-paper');
+    expect(panelStack.find('.folder').classes()).not.toContain('folder--texture-layer-sheet');
+    expect(panelStack.find('.folder').classes()).not.toContain('folder--texture-layer-content');
+    expect(panelStack.find('.folder').classes()).not.toContain('folder--texture-layer-tab');
     expect(panelStack.find('.folder').classes()).toContain('folder--texture-blend-multiply');
     expect(panelStack.find('.folder').classes()).toContain('folder--text-color-dark');
   });
@@ -3297,6 +3356,8 @@ describe('FolderTabs', () => {
     expect(normalizeFolderTabRotation('sideways')).toBe('straight');
     expect(normalizeFolderSurfaceTexture('paper')).toBe('paper');
     expect(normalizeFolderSurfaceTexture('linen')).toBe('none');
+    expect(normalizeFolderSurfaceTextureLayers('shell')).toEqual(['sheet', 'tab']);
+    expect(normalizeFolderSurfaceTextureLayers(['content', 'tab', 'content'])).toEqual(['content', 'tab']);
     expect(normalizeFolderSurfaceTextColor('dark')).toBe('dark');
     expect(normalizeFolderSurfaceTextColor('invisible')).toBe('auto');
     expect(normalizeFolderSurfaceTextureBlendMode('multiply')).toBe('multiply');
