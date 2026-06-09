@@ -247,7 +247,7 @@ describe('folder tab helpers', () => {
       '--folder-paper-tab-opacity-custom': '0.6',
     });
     expect(getFolderPaperTextureStyle('paper05HybridStrong')['--folder-paper-texture-custom'])
-      ?.toContain('05-creamy-fine-tooth-hybrid-strong-128-tile');
+      ?.toContain('05-creamy-fine-tooth-hybrid-strong-2048-tile');
     expect(getFolderPaperTextureStyle('missing')).toEqual({});
   });
 

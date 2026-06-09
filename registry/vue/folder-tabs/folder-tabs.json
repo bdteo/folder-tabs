@@ -78,14 +78,14 @@
       "target": "components/ui/folder-tabs/assets/paper/paper-watercolor-rough.jpg"
     },
     {
-      "path": "assets/paper/03-fibrous-cotton-rag-hybrid-strong-128-tile.png",
+      "path": "assets/paper/03-fibrous-cotton-rag-hybrid-strong-2048-tile.png",
       "type": "registry:file",
-      "target": "components/ui/folder-tabs/assets/paper/03-fibrous-cotton-rag-hybrid-strong-128-tile.png"
+      "target": "components/ui/folder-tabs/assets/paper/03-fibrous-cotton-rag-hybrid-strong-2048-tile.png"
     },
     {
-      "path": "assets/paper/05-creamy-fine-tooth-hybrid-strong-128-tile.png",
+      "path": "assets/paper/05-creamy-fine-tooth-hybrid-strong-2048-tile.png",
       "type": "registry:file",
-      "target": "components/ui/folder-tabs/assets/paper/05-creamy-fine-tooth-hybrid-strong-128-tile.png"
+      "target": "components/ui/folder-tabs/assets/paper/05-creamy-fine-tooth-hybrid-strong-2048-tile.png"
     }
   ]
 }

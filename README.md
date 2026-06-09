@@ -242,9 +242,10 @@ Available preset keys are `watercolor`, `paper03HybridStrong`, and
 `paper05HybridStrong`. The exported `folderPaperTexturePresets` and
 `folderPaperTexturePresetOptions` objects expose the underlying URL, filter,
 opacity, and sizing values when an app wants to build its own selector. The
-image presets use compact 128px PNG tiles that are smoothed for seamless CSS
-repeat; older `paper03HybridStrongRepeat` and `paper05HybridStrongRepeat`
-keys remain accepted as compatibility aliases for the matching compact tile.
+image presets use the high-detail restored paper originals repeated at a
+compressed CSS scale, preserving the material bite without stretching the
+texture; older `paper03HybridStrongRepeat` and `paper05HybridStrongRepeat`
+keys remain accepted as compatibility aliases for the matching paper tile.
 
 ## Geometry Helpers
 
