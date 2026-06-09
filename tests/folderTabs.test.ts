@@ -8,7 +8,9 @@ import {
   FolderTabPanelStack,
   FolderTabs,
   getFolderMinimumVisibleGrabSize,
+  getFolderPullOffset,
   getFolderVisibleGrabSize,
+  normalizeFolderPullDistance,
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
   normalizeFolderSurfaceTexture,
@@ -396,6 +398,16 @@ describe('FolderTabs', () => {
     ].join('\n'));
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-rest-x), var(--folder-piece-rest-y), 0px);');
     expect(folderTabsCss).not.toContain('transform: translate3d(var(--folder-piece-pull-x), var(--folder-piece-pull-y), 0px);');
+  });
+
+  it('lets integrations tune the physical pull distance explicitly', () => {
+    expect(getFolderPullOffset('top')).toEqual({ x: 0, y: 0 });
+    expect(getFolderPullOffset('top', 8)).toEqual({ x: 0, y: -8 });
+    expect(getFolderPullOffset('right', 12)).toEqual({ x: 12, y: 0 });
+    expect(getFolderPullOffset('bottom', 0)).toEqual({ x: 0, y: 0 });
+    expect(getFolderPullOffset('left', -4)).toEqual({ x: 0, y: 0 });
+    expect(normalizeFolderPullDistance(Number.NaN)).toBe(0);
+    expect(normalizeFolderPullDistance(5.5)).toBe(5.5);
   });
 
   it('can rotate tucked folder sheets and tab handles independently', () => {
@@ -1757,6 +1769,79 @@ describe('FolderTabs', () => {
     expect(lastTab.classes()).not.toContain('is-open');
     expect(lastFolderWrapper.find('.folder-binder').classes()).not.toContain('is-pulled');
     expect(lastFolderWrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Documents');
+  });
+
+  it('keeps attached same-value activation idempotent while fallback selections can commit', async () => {
+    const topRightTabs: FolderTabItem[] = tabs.map((tab, index) => ({
+      ...tab,
+      edge: 'top',
+      gravity: index < 2 ? 'start' : 'end',
+    }));
+    const wrapper = mount(FolderAttachment, {
+      props: {
+        tabs: topRightTabs,
+        modelValue: 'docs',
+        ariaLabel: 'Same attached folder',
+        orientation: 'horizontal',
+        edge: 'top',
+        appearance: 'stack',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    const activeFolderBefore = wrapper.findAll('.folder-attachment__folder')[3];
+    expect(activeFolderBefore.classes()).toContain('is-active');
+    expect(activeFolderBefore.classes()).not.toContain('is-pulling');
+    expect(activeFolderBefore.attributes('style')).toContain('--folder-piece-y: 0.00px');
+
+    await wrapper.findAll('[role="tab"]')[3].trigger('click');
+    await nextTick();
+
+    const activeFolderAfter = wrapper.findAll('.folder-attachment__folder')[3];
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+    expect(wrapper.emitted('activate')).toBeUndefined();
+    expect(activeFolderAfter.classes()).toContain('is-active');
+    expect(activeFolderAfter.classes()).not.toContain('is-pulling');
+    expect(activeFolderAfter.classes()).not.toContain('is-pulled');
+    expect(activeFolderAfter.attributes('style')).toContain('--folder-piece-y: 0.00px');
+
+    const manual = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'photos',
+        ariaLabel: 'Same attached manual folder',
+        activation: 'manual',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    await manual.findAll('[role="tab"]')[0].trigger('keydown', { key: 'Enter' });
+    await manual.findAll('[role="tab"]')[0].trigger('keydown', { key: ' ' });
+
+    expect(manual.emitted('update:modelValue')).toBeUndefined();
+    expect(manual.emitted('activate')).toBeUndefined();
+    expect(manual.findAll('.folder-attachment__folder')[0].classes()).not.toContain('is-pulling');
+
+    const fallback = mount(FolderAttachment, {
+      props: {
+        tabs,
+        modelValue: 'missing',
+        ariaLabel: 'Fallback attached folder',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    await fallback.findAll('[role="tab"]')[0].trigger('click');
+
+    expect(fallback.emitted('update:modelValue')).toEqual([['photos']]);
+    expect(fallback.emitted('activate')?.[0]?.[0]).toBe('photos');
+    expect(fallback.findAll('.folder-attachment__folder')[0].classes()).toContain('is-pulling');
   });
 
   it('does not focus stale attached tabs after unmounting before queued focus flushes', async () => {
@@ -3823,7 +3908,7 @@ describe('FolderTabs', () => {
 
       const deepestFolder = wrapper.findAll('.folder-attachment__folder')[1];
       const style = deepestFolder.attributes('style') ?? '';
-      const expectedReachSize = edge === 'left' || edge === 'right' ? '164.00px' : '96.00px';
+      const expectedReachSize = edge === 'left' || edge === 'right' ? '156.00px' : '88.00px';
 
       expect(style).toContain(`--folder-piece-x: ${expectedX}`);
       expect(style).toContain(`--folder-piece-y: ${expectedY}`);
@@ -3866,7 +3951,7 @@ describe('FolderTabs', () => {
       const restX = folderPieceStyleNumber(wrapper, deepestFolderIndex, '--folder-piece-rest-x');
       const restY = folderPieceStyleNumber(wrapper, deepestFolderIndex, '--folder-piece-rest-y');
       const tuckedDistance = Math.max(Math.abs(restX), Math.abs(restY));
-      const activePullCoverDistance = 8;
+      const activePullCoverDistance = 0;
 
       expect(folderPieceStyleNumber(wrapper, deepestFolderIndex, '--folder-piece-x')).toBe(restX);
       expect(folderPieceStyleNumber(wrapper, deepestFolderIndex, '--folder-piece-y')).toBe(restY);
@@ -3925,6 +4010,7 @@ describe('FolderTabs', () => {
           edge: 'left',
           appearance: 'stack',
           tone: 'teal',
+          pullDistance: 8,
           returnDuration: 20,
           'onUpdate:modelValue': (key: FolderTabKey) => {
             active.value = String(key);
@@ -3969,6 +4055,76 @@ describe('FolderTabs', () => {
     expect(wrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Object photos');
   });
 
+  it('can keep active top-edge folders flush when pull distance is disabled', async () => {
+    vi.useFakeTimers();
+
+    const topTabs: FolderTabItem[] = [
+      { key: 'photos', label: 'Photos', icon: Icon, count: 11, gravity: 'start' },
+      { key: 'plans', label: 'Plans', icon: Icon, gravity: 'start' },
+      { key: 'parking', label: 'Parking', shortLabel: 'Park', icon: Icon, count: 1, gravity: 'end' },
+      { key: 'exterior', label: 'Exterior', shortLabel: 'Ext.', icon: Icon, count: 10, gravity: 'end' },
+    ];
+
+    const Harness = defineComponent({
+      setup() {
+        const active = ref('photos');
+
+        return () => h(FolderAttachment, {
+          tabs: topTabs,
+          modelValue: active.value,
+          ariaLabel: 'Gallery categories',
+          orientation: 'horizontal',
+          edge: 'top',
+          appearance: 'stack',
+          expandOn: 'active',
+          gravity: 'start',
+          pullDuration: 30,
+          returnDuration: 20,
+          'onUpdate:modelValue': (key: FolderTabKey) => {
+            active.value = String(key);
+          },
+        }, {
+          default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+        });
+      },
+    });
+
+    try {
+      const wrapper = mount(Harness);
+      const renderedTabs = wrapper.findAll('[role="tab"]');
+
+      await renderedTabs[2].trigger('click');
+      await nextTick();
+
+      expect(wrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Parking');
+      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-y')).toBe(0);
+      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-pull-y')).toBe(0);
+
+      vi.advanceTimersByTime(30);
+      await nextTick();
+
+      expect(wrapper.findAll('.folder-attachment__folder')[2].classes()).toContain('is-pulled');
+      expect(folderPieceStyleNumber(wrapper, 2, '--folder-piece-y')).toBe(0);
+
+      await renderedTabs[3].trigger('click');
+      await nextTick();
+
+      expect(wrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Exterior');
+      expect(folderPieceStyleNumber(wrapper, 3, '--folder-piece-y')).toBe(0);
+      expect(folderPieceStyleNumber(wrapper, 3, '--folder-piece-pull-y')).toBe(0);
+      expect(wrapper.findAll('.folder-attachment__folder')[3].attributes('style')).toContain('--folder-piece-z: 300');
+
+      vi.advanceTimersByTime(50);
+      await nextTick();
+
+      expect(wrapper.findAll('.folder-attachment__folder')[3].classes()).toContain('is-pulled');
+      expect(folderPieceStyleNumber(wrapper, 3, '--folder-piece-y')).toBe(0);
+      expect(wrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Exterior');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('keeps clicking an already pulled folder idempotent', async () => {
     vi.useFakeTimers();
 
@@ -4001,25 +4157,33 @@ describe('FolderTabs', () => {
       await renderedTabs[0].trigger('click');
       await nextTick();
 
-      expect(attachment.emitted('update:modelValue')).toEqual([['photos']]);
-      expect(attachment.emitted('activate')?.[0]?.[0]).toBe('photos');
-      expect(wrapper.findAll('.folder-attachment__folder')[0].classes()).toContain('is-pulling');
+      expect(attachment.emitted('update:modelValue')).toBeUndefined();
+      expect(attachment.emitted('activate')).toBeUndefined();
+      expect(wrapper.findAll('.folder-attachment__folder')[0].classes()).not.toContain('is-pulling');
+      expect(wrapper.find('.folder-binder').classes()).not.toContain('is-pulled');
+
+      await renderedTabs[1].trigger('click');
+      await nextTick();
+
+      expect(attachment.emitted('update:modelValue')).toEqual([['plans']]);
+      expect(attachment.emitted('activate')?.[0]?.[0]).toBe('plans');
+      expect(wrapper.findAll('.folder-attachment__folder')[1].classes()).toContain('is-pulling');
       expect(wrapper.find('.folder-binder').classes()).toContain('is-pulled');
 
       vi.advanceTimersByTime(30);
       await nextTick();
 
-      expect(wrapper.findAll('.folder-attachment__folder')[0].classes()).toContain('is-pulled');
-      expect(wrapper.findAll('.folder-attachment__folder')[0].classes()).not.toContain('is-pulling');
+      expect(wrapper.findAll('.folder-attachment__folder')[1].classes()).toContain('is-pulled');
+      expect(wrapper.findAll('.folder-attachment__folder')[1].classes()).not.toContain('is-pulling');
 
-      await wrapper.findAll('[role="tab"]')[0].trigger('click');
+      await wrapper.findAll('[role="tab"]')[1].trigger('click');
       await nextTick();
 
-      expect(attachment.emitted('update:modelValue')).toEqual([['photos']]);
+      expect(attachment.emitted('update:modelValue')).toEqual([['plans']]);
       expect(attachment.emitted('activate')).toHaveLength(1);
-      expect(wrapper.findAll('.folder-attachment__folder')[0].classes()).toContain('is-pulled');
-      expect(wrapper.findAll('.folder-attachment__folder')[0].classes()).not.toContain('is-pulling');
-      expect(wrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Object photos');
+      expect(wrapper.findAll('.folder-attachment__folder')[1].classes()).toContain('is-pulled');
+      expect(wrapper.findAll('.folder-attachment__folder')[1].classes()).not.toContain('is-pulling');
+      expect(wrapper.find('.folder-attachment__content:not([hidden])').text()).toBe('Floor plans');
     } finally {
       vi.useRealTimers();
     }

@@ -15,6 +15,7 @@ const minSideVisibleGrabLane = 110;
 const minIconClearance = 6;
 const maxActiveSeamGap = 0.75;
 const maxActiveSeamOverlap = 1.5;
+const maxActiveSheetOffset = 0.75;
 const maxHoverMotionDelta = 0.75;
 const minHoverOutwardTug = 4;
 const qaScenarios = [
@@ -143,6 +144,7 @@ async function inspectDemoGeometry(client) {
     const minIconClearance = ${minIconClearance};
     const maxActiveSeamGap = ${maxActiveSeamGap};
     const maxActiveSeamOverlap = ${maxActiveSeamOverlap};
+    const maxActiveSheetOffset = ${maxActiveSheetOffset};
     const maxHoverMotionDelta = ${maxHoverMotionDelta};
     const minHoverOutwardTug = ${minHoverOutwardTug};
     const round = (value) => Math.round(value * 100) / 100;
@@ -437,6 +439,9 @@ async function inspectDemoGeometry(client) {
             continue;
           }
 
+          const folderStyle = getComputedStyle(folder);
+          const activePieceX = parsePx(folderStyle, '--folder-piece-x');
+          const activePieceY = parsePx(folderStyle, '--folder-piece-y');
           const tabRect = tab.getBoundingClientRect();
           const activeSeamGap = edge === 'top'
             ? activePanelRect.top - tabRect.bottom
@@ -448,10 +453,21 @@ async function inspectDemoGeometry(client) {
 
           measurements.push({
             activeSeamGap: round(activeSeamGap),
+            activeSheetX: round(activePieceX),
+            activeSheetY: round(activePieceY),
             edge,
             label,
             root: rootClass,
           });
+
+          if (
+            Math.abs(activePieceX) > maxActiveSheetOffset
+            || Math.abs(activePieceY) > maxActiveSheetOffset
+          ) {
+            failures.push(
+              \`\${rootClass} / \${label}: active folder sheet is offset by \${round(activePieceX)}, \${round(activePieceY)}px; demo defaults should keep the sheet flush\`,
+            );
+          }
 
           if (activeSeamGap > maxActiveSeamGap) {
             failures.push(

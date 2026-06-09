@@ -14,6 +14,7 @@ import {
   getFolderStackSlots,
   getFolderTabReachSize,
   getFolderTuckRotation,
+  normalizeFolderPullDistance,
   type FolderTabMeasurement,
 } from './folderGeometry';
 import {
@@ -81,6 +82,7 @@ const props = withDefaults(defineProps<{
   stackRotation?: FolderStackRotation | null;
   tabRotation?: FolderTabRotation;
   tuckedTilt?: boolean;
+  pullDistance?: number;
   pullDuration?: number;
   returnDuration?: number;
   emulatedHoverKey?: FolderTabKey | null;
@@ -105,6 +107,7 @@ const props = withDefaults(defineProps<{
   stackRotation: null,
   tabRotation: 'straight',
   tuckedTilt: false,
+  pullDistance: 0,
   pullDuration: 420,
   emulatedHoverKey: null,
   folderClass: '',
@@ -183,6 +186,7 @@ const normalizedTextureLayers = computed(() => normalizeFolderSurfaceTextureLaye
 const normalizedTextureBlendMode = computed(() => normalizeFolderSurfaceTextureBlendMode(props.textureBlendMode));
 const normalizedTextColor = computed(() => normalizeFolderSurfaceTextColor(props.textColor));
 const normalizedTone = computed(() => normalizeFolderTone(props.tone));
+const effectivePullDistance = computed(() => normalizeFolderPullDistance(props.pullDistance));
 const activeEdge = computed(() => activeTab.value
   ? getTabEdge(activeTab.value)
   : tabList.normalizedEdge.value);
@@ -208,6 +212,7 @@ const tabListAriaOrientation = computed(() => (
   hasMixedEdges.value ? undefined : binderOrientation.value
 ));
 
+const requestedModelKey = computed(() => normalizeFolderTabKeyForLookup(props.modelValue));
 const emulatedHoverKey = computed(() => normalizeFolderTabKeyForLookup(props.emulatedHoverKey));
 
 const effectiveHoverKey = computed(() => hoveredKey.value ?? emulatedHoverKey.value);
@@ -515,6 +520,10 @@ function handleKeydown(event: KeyboardEvent, tab: FolderTabItem): void {
   if (normalizedActivation.value === 'manual' && (event.key === 'Enter' || event.key === ' ')) {
     event.preventDefault();
     event.stopPropagation();
+    if (isCommittedActiveTab(tab)) {
+      return;
+    }
+
     motion.selectFolder(tab);
   }
 }
@@ -595,7 +604,7 @@ function folderStyle(tab: FolderTabItem, index: number): Record<string, string |
     normalizedDensity.value,
   );
   const hoverOffset = getFolderHoverOffset(layout.edge);
-  const pullOffset = getFolderPullOffset(layout.edge);
+  const pullOffset = getFolderPullOffset(layout.edge, effectivePullDistance.value);
   const zIndex = getPieceZIndex(tab, index);
   const measurement = measurements.value[String(tab.key)] ?? folderFallbackTabMeasurement;
   const compactSize = getCompactSize(measurement, layout.orientation);
@@ -737,7 +746,7 @@ function getActiveFolderCoverDistance(edge: FolderTabEdge): number {
   }
 
   const edgeVector = getFolderEdgeVector(edge);
-  const activePull = getFolderPullOffset(getTabEdge(active));
+  const activePull = getFolderPullOffset(getTabEdge(active), effectivePullDistance.value);
   const projectedCover = (activePull.x * edgeVector.x) + (activePull.y * edgeVector.y);
 
   return Math.max(projectedCover, 0);
@@ -834,8 +843,18 @@ function selectFolder(tab: FolderTabItem): void {
     return;
   }
 
+  if (isCommittedActiveTab(tab)) {
+    return;
+  }
+
   tabList.focusedKey.value = String(tab.key);
   motion.selectFolder(tab);
+}
+
+function isCommittedActiveTab(tab: FolderTabItem): boolean {
+  const normalizedKey = String(tab.key);
+
+  return tabList.isActive(tab) && requestedModelKey.value === normalizedKey;
 }
 
 function setHoveredTab(tab: FolderTabItem): void {
