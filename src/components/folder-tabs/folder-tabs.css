@@ -1089,6 +1089,12 @@
   --folder-accent: #f0d6ff;
 }
 
+.folder-binder--tone-steel,
+.folder--tone-steel {
+  --folder-tint: #7890a3;
+  --folder-accent: #d7e9f7;
+}
+
 .folder-binder,
 .folder-tab-panel-stack,
 .folder {

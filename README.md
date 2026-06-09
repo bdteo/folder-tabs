@@ -160,7 +160,7 @@ checker as a native ARIA attribute, not as this required component prop.
 | --- | --- | --- | --- |
 | `depth` | `flat \| subtle \| raised \| deep` | `raised` | Controls binder/folder shadow depth. |
 | `layers` | `number` | `2` | Bounded by `FolderBinder` to `0`, `1`, or `2` visible underlayers. |
-| `tone` | `slate \| moss \| teal \| copper \| violet` | `slate` | Fallback tint for the binder and folders without their own `tone`. |
+| `tone` | `slate \| moss \| teal \| copper \| violet \| steel` | `slate` | Fallback tint for the binder and folders without their own `tone`. |
 | `texture` | `none \| paper` | `none` | Adds a procedural, tileable paper grain to the binder, folder sheets, content surface, and attached tab handles without requiring an image asset. |
 | `textureLayers` | `all \| shell \| sheet \| content \| tab \| none \| ('sheet' \| 'content' \| 'tab')[]` | `all` | Chooses where the paper layer is painted. Use `shell` for media galleries or app surfaces where the binder/tabs should feel like paper but the content area should stay owned by the app. |
 | `textureBlendMode` | CSS blend mode \| `auto` | `auto` | Controls the paper overlay/background blending for the whole physical stack. |
@@ -195,14 +195,14 @@ Use `Folder` for the active content surface and `FolderBinder` for the physical 
 | `depth` | `flat \| subtle \| raised \| deep` | `raised` | Controls the strength of panel shadow/layering. |
 | `layers` | `number` | `2` | Bounded to `0`, `1`, or `2` visible underlayers. |
 | `activeIndex` | `number` | `0` | Exposed as a CSS variable for app-specific position-dependent styling. |
-| `tone` | `slate \| moss \| teal \| copper \| violet` | `slate` | Tints the folder and binder layers. |
+| `tone` | `slate \| moss \| teal \| copper \| violet \| steel` | `slate` | Tints the folder and binder layers. |
 | `texture` | `none \| paper` | `none` | Adds the same procedural paper grain used by `FolderAttachment` to standalone binder/folder compositions. |
 | `textureLayers` | `all \| shell \| sheet \| content \| tab \| none \| ('sheet' \| 'content' \| 'tab')[]` | `all` | Chooses where the paper layer is painted. `FolderBinder` and standalone `Folder` primarily use `sheet`; compatibility wrappers also forward the setting to their child pieces. |
 | `textureBlendMode` | CSS blend mode \| `auto` | `auto` | Controls how that paper grain blends into standalone binder/folder surfaces. |
 | `textColor` | `auto \| light \| dark \| inherit` | `auto` | Controls standalone binder/folder ink color. |
 | `pulled` | `boolean` | `false` | Raises the binder/front layer for a pulled stack. It does not apply the outward pull transform by itself; `FolderAttachment` owns the tab-and-folder pull motion. |
 
-`Folder` accepts `tone` so the content surface matches its binder. `FolderAttachment` also accepts `tone` as a fallback, while each `FolderTabItem` can set its own `tone` to make individual folders in a stack visually distinct. `texture="paper"` works out of the box with a CSS-generated fiber grain, and the package also ships a small set of image-backed paper presets for stronger material texture. Use `textureLayers` when the app surface and the physical shell need different material treatment: `all` preserves the full paper recipe, `shell` paints only the sheets and handles, `content` paints only the active content surface, and arrays such as `['sheet', 'tab']` are accepted for explicit control. This is especially useful for photo galleries, maps, and document previews where the content should not inherit the binder grain. Use `textureBlendMode` when the same texture should sink into the surface differently, for example `multiply` for darker paper bite or `soft-light` for a gentler cardstock feel. `textColor="auto"` uses a CSS heuristic: darkening modes keep light ink, while brightening modes use dark ink. When an app knows its surface is light or dark, `textColor="dark"` or `textColor="light"` is the explicit override. `FolderTabPanelStack` remains available as a compatibility wrapper around `FolderBinder` + `Folder`.
+`Folder` accepts `tone` so the content surface matches its binder. `FolderAttachment` also accepts `tone` as a fallback, while each `FolderTabItem` can set its own `tone` to make individual folders in a stack visually distinct. Attached folders can also set `tint` and `accent` to any CSS color when a tab needs a one-off custom material color beyond the finite tone presets. `texture="paper"` works out of the box with a CSS-generated fiber grain, and the package also ships a small set of image-backed paper presets for stronger material texture. Use `textureLayers` when the app surface and the physical shell need different material treatment: `all` preserves the full paper recipe, `shell` paints only the sheets and handles, `content` paints only the active content surface, and arrays such as `['sheet', 'tab']` are accepted for explicit control. This is especially useful for photo galleries, maps, and document previews where the content should not inherit the binder grain. Use `textureBlendMode` when the same texture should sink into the surface differently, for example `multiply` for darker paper bite or `soft-light` for a gentler cardstock feel. `textColor="auto"` uses a CSS heuristic: darkening modes keep light ink, while brightening modes use dark ink. When an app knows its surface is light or dark, `textColor="dark"` or `textColor="light"` is the explicit override. `FolderTabPanelStack` remains available as a compatibility wrapper around `FolderBinder` + `Folder`.
 
 Image-backed paper textures are first-class package assets. Import a preset style
 and bind it to the same element that receives `texture="paper"`:
@@ -295,6 +295,8 @@ interface FolderTabItem {
   edge?: 'top' | 'right' | 'bottom' | 'left'; // Optional per-folder edge override for FolderAttachment.
   gravity?: 'start' | 'center' | 'end'; // Optional per-folder slot group on its edge for FolderAttachment.
   tone?: FolderTone;
+  tint?: string; // Optional CSS color override for this attached folder.
+  accent?: string; // Optional CSS color override for active/focus accents on this attached folder.
   icon?: Component | null;
   count?: string | number | null;
   countLabel?: string | number | null; // Optional visible/accessibility count override, even without count.

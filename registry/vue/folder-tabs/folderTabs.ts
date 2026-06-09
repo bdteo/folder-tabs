@@ -11,7 +11,7 @@ export type FolderTabGravity = 'start' | 'center' | 'end';
 export type FolderTabAppearance = 'rail' | 'stack';
 export type FolderBinderDepth = 'flat' | 'subtle' | 'raised' | 'deep';
 export type FolderTabPanelStackDepth = FolderBinderDepth;
-export type FolderTone = 'slate' | 'moss' | 'teal' | 'copper' | 'violet';
+export type FolderTone = 'slate' | 'moss' | 'teal' | 'copper' | 'violet' | 'steel';
 export type FolderStackRotation = 'none' | 'folders' | 'pieces';
 export type FolderTabRotation = 'straight' | 'rotated';
 export type FolderSurfaceTexture = 'none' | 'paper';
@@ -46,6 +46,8 @@ export interface FolderTabItem {
   edge?: FolderTabEdge;
   gravity?: FolderTabGravity;
   tone?: FolderTone;
+  tint?: string;
+  accent?: string;
   icon?: Component | null;
   count?: string | number | null;
   countLabel?: string | number | null;
@@ -63,7 +65,7 @@ const folderTabExpandModes = new Set<FolderTabExpandOn>(['active', 'hover', 'foc
 const folderTabGravities = new Set<FolderTabGravity>(['start', 'center', 'end']);
 const folderTabAppearances = new Set<FolderTabAppearance>(['rail', 'stack']);
 const folderBinderDepths = new Set<FolderBinderDepth>(['flat', 'subtle', 'raised', 'deep']);
-const folderTones = new Set<FolderTone>(['slate', 'moss', 'teal', 'copper', 'violet']);
+const folderTones = new Set<FolderTone>(['slate', 'moss', 'teal', 'copper', 'violet', 'steel']);
 const folderStackRotations = new Set<FolderStackRotation>(['none', 'folders', 'pieces']);
 const folderTabRotations = new Set<FolderTabRotation>(['straight', 'rotated']);
 const folderSurfaceTextures = new Set<FolderSurfaceTexture>(['none', 'paper']);

@@ -219,6 +219,7 @@ describe('folder tab helpers', () => {
     expect(normalizeFolderActiveIndex(-1)).toBe(0);
     expect(normalizeFolderActiveIndex(Number.NaN)).toBe(0);
     expect(normalizeFolderTone('copper')).toBe('copper');
+    expect(normalizeFolderTone('steel')).toBe('steel');
     expect(normalizeFolderTone('neon')).toBe('slate');
     expect(normalizeFolderTabRotation('rotated')).toBe('rotated');
     expect(normalizeFolderTabRotation('sideways')).toBe('straight');

@@ -568,6 +568,28 @@ function folderTone(tab: FolderTabItem): FolderTone {
   return normalizeFolderTone(tab.tone ?? normalizedTone.value);
 }
 
+function folderCustomColorStyle(tab: FolderTabItem): Record<string, string> {
+  const style: Record<string, string> = {};
+  const tint = normalizeFolderCustomColor(tab.tint);
+  const accent = normalizeFolderCustomColor(tab.accent);
+
+  if (tint) {
+    style['--folder-tint'] = tint;
+  }
+
+  if (accent) {
+    style['--folder-accent'] = accent;
+  }
+
+  return style;
+}
+
+function normalizeFolderCustomColor(color: unknown): string | null {
+  return typeof color === 'string' && color.trim() !== ''
+    ? color.trim()
+    : null;
+}
+
 function folderClasses(tab: FolderTabItem): Array<string | Record<string, boolean>> {
   const layout = getFolderLayout(tab);
 
@@ -638,6 +660,7 @@ function folderStyle(tab: FolderTabItem, index: number): Record<string, string |
     '--folder-attached-tab-grab-size': `${grabSize.toFixed(2)}px`,
     '--folder-attached-tab-reach-size': `${reachSize.toFixed(2)}px`,
     '--folder-piece-z': zIndex,
+    ...folderCustomColorStyle(tab),
   };
 }
 

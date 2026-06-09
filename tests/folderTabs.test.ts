@@ -3247,6 +3247,34 @@ describe('FolderTabs', () => {
     expect(wrapper.find('.folder-binder').classes()).toContain('folder-binder--tone-teal');
   });
 
+  it('uses custom tab item tint and accent colors for attached folders', async () => {
+    const customTintTabs: FolderTabItem[] = tabs.map((tab) => (
+      tab.key === 'plans'
+        ? { ...tab, accent: '#d7e9f7', tint: '#5f7896', tone: 'steel' }
+        : tab
+    ));
+
+    const wrapper = mount(FolderAttachment, {
+      props: {
+        tabs: customTintTabs,
+        modelValue: 'plans',
+        ariaLabel: 'Media folders',
+        tone: 'teal',
+      },
+      slots: {
+        default: ({ activeTab }: { activeTab: FolderTabItem | null }) => h('p', activeTab?.label),
+      },
+    });
+
+    await nextTick();
+
+    const activeFolder = wrapper.find('.folder-attachment__folder.is-active');
+
+    expect(activeFolder.classes()).toContain('folder--tone-steel');
+    expect(activeFolder.attributes('style')).toContain('--folder-tint: #5f7896');
+    expect(activeFolder.attributes('style')).toContain('--folder-accent: #d7e9f7');
+  });
+
   it('supports mixed per-folder edges inside one attached binder', async () => {
     const mixedTabs: FolderTabItem[] = [
       { ...tabs[0], edge: 'left' },

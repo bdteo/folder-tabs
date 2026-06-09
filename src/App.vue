@@ -87,13 +87,31 @@ const caseTabs: FolderTabItem[] = [
   { key: 'strategy', label: 'Strategy map', shortLabel: 'Strategy', tone: 'moss', icon: Icons.compass, count: 3 },
   { key: 'signals', label: 'Signal model', shortLabel: 'Signals', tone: 'violet', icon: Icons.graph, count: 6 },
   { key: 'review', label: 'Counsel review', shortLabel: 'Review', tone: 'slate', icon: Icons.note, count: 2 },
+  { key: 'closing', label: 'Closing file', shortLabel: 'Closing', tone: 'steel', icon: Icons.archive, count: 1 },
 ];
 
-const primaryTabs: FolderTabItem[] = caseTabs.map((tab, index) => ({
+const defaultClosingTint = '#7890a3';
+const closingTint = ref(defaultClosingTint);
+const closingColorPresets = [
+  { label: 'Steel', color: defaultClosingTint },
+  { label: 'Harbor', color: '#5f7896' },
+  { label: 'Rain', color: '#8aa8b5' },
+  { label: 'Ink', color: '#42627f' },
+  { label: 'Juniper', color: '#6b8c89' },
+];
+
+const primaryBaseTabs: FolderTabItem[] = caseTabs.map((tab, index) => ({
   ...tab,
   edge: 'top',
   gravity: index < 2 ? 'start' : 'end',
 }));
+const closingAccent = computed(() => `color-mix(in srgb, ${closingTint.value} 42%, #ffffff)`);
+const closingTintStyle = computed(() => ({ '--demo-closing-tint': closingTint.value }));
+const primaryTabs = computed<FolderTabItem[]>(() => primaryBaseTabs.map((tab) => (
+  tab.key === 'closing'
+    ? { ...tab, tint: closingTint.value, accent: closingAccent.value }
+    : tab
+)));
 
 const workbenchTabs: FolderTabItem[] = [
   {
@@ -230,7 +248,7 @@ function formatCount(tab: FolderTabItem | null | undefined): string {
   return String(tab.countLabel ?? tab.count ?? '');
 }
 
-const primaryActive = ref(demoActiveKey(primaryTabs, ['activePrimary', 'activeWrap', 'activeTop'], 'evidence'));
+const primaryActive = ref(demoActiveKey(primaryBaseTabs, ['activePrimary', 'activeWrap', 'activeTop'], 'evidence'));
 const workbenchActive = ref(demoActiveKey(
   workbenchTabs,
   ['activeWorkbench', 'activeMixed', 'activeLeft', 'activeRight', 'activeBottom'],
@@ -351,7 +369,15 @@ function setTextColor(mode: FolderSurfaceTextColor) {
   });
 }
 
-const activePrimary = computed(() => primaryTabs.find((tab) => String(tab.key) === primaryActive.value) ?? null);
+function setClosingTint(color: string) {
+  const normalizedColor = color.trim().toLowerCase();
+
+  if (/^#[0-9a-f]{6}$/.test(normalizedColor)) {
+    closingTint.value = normalizedColor;
+  }
+}
+
+const activePrimary = computed(() => primaryTabs.value.find((tab) => String(tab.key) === primaryActive.value) ?? null);
 const activeWorkbench = computed(() => workbenchTabs.find((tab) => String(tab.key) === workbenchActive.value) ?? null);
 const activeRail = computed(() => caseTabs.find((tab) => String(tab.key) === railActive.value) ?? null);
 const primaryCount = computed(() => formatCount(activePrimary.value));
@@ -609,6 +635,37 @@ function normalizeDemoTextureLayerMode(value: string | null): FolderSurfaceTextu
             empty space between groups reads as real desk space instead of a
             layout gap.
           </p>
+          <div class="demo-folder__color-lab" :style="closingTintStyle">
+            <label class="demo-folder__color-field">
+              <span>Closing tint</span>
+              <input
+                v-model="closingTint"
+                type="color"
+                aria-label="Closing folder tint"
+              >
+            </label>
+            <span class="demo-folder__color-value">{{ closingTint.toUpperCase() }}</span>
+            <div class="demo-folder__color-presets" aria-label="Closing tint presets">
+              <button
+                v-for="swatch in closingColorPresets"
+                :key="swatch.color"
+                type="button"
+                class="demo-folder__color-preset"
+                :class="{ 'is-active': closingTint === swatch.color }"
+                :style="{ backgroundColor: swatch.color }"
+                :aria-label="`Use ${swatch.label} tint`"
+                :title="swatch.label"
+                @click="setClosingTint(swatch.color)"
+              ></button>
+            </div>
+            <button
+              type="button"
+              class="demo-folder__color-reset"
+              @click="setClosingTint(defaultClosingTint)"
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
         <div class="demo-folder__stamp" aria-hidden="true">
