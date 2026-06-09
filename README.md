@@ -238,14 +238,23 @@ const paperStyle = getFolderPaperTextureStyle('paper05HybridStrong');
 </template>
 ```
 
-Available preset keys are `watercolor`, `paper03HybridStrong`, and
-`paper05HybridStrong`. The exported `folderPaperTexturePresets` and
+Available preset keys include `watercolor`, `paper03HybridStrong`,
+`paper03HybridStrongRepeat`, `paper03HybridStrongDensity4`,
+`paper03HybridStrongDensity9`, `paper05HybridStrong`,
+`paper05HybridStrongRepeat`, `paper05HybridStrongDensity4`, and
+`paper05HybridStrongDensity9`. The exported `folderPaperTexturePresets` and
 `folderPaperTexturePresetOptions` objects expose the underlying URL, filter,
 opacity, and sizing values when an app wants to build its own selector. The
 image presets use the high-detail restored paper originals repeated at a
 compressed CSS scale, preserving the material bite without stretching the
 texture. `paper03HybridStrongRepeat` and `paper05HybridStrongRepeat` expose
 the original repeat-preview texture variants as separate selector options.
+`paper03HybridStrongDensity4` and `paper05HybridStrongDensity4` are 512px
+high-quality downsampled tiles rendered at their native 512px repeat size.
+`paper03HybridStrongDensity9` and `paper05HybridStrongDensity9` are 228px
+downsampled tiles rendered at their native 228px repeat size. The denser
+photographed-surface feel comes from downsampling only, not from CSS squashing
+the texture at runtime.
 
 ## Geometry Helpers
 
@@ -328,12 +337,18 @@ The local demo accepts QA URL params for stable visual states: `activeTop`,
 `activeLeft`, `activeBottom`, `activeRight`, `activeChess`, and `activeCorner`
 set the initially selected folder, while `hoverTop`, `hoverLeft`,
 `hoverBottom`, `hoverRight`, `hoverChess`, and `hoverCorner` emulate hover.
-Use `texture=fiber`, `texture=watercolor`, `texture=paper03HybridStrong`, or
-`texture=paper05HybridStrong` to open the demo directly in one of the paper
-surface modes. Add `blend=multiply`, `blend=overlay`, `blend=soft-light`,
-`blend=color-burn`, or another supported blend value to compare texture
-compositing. Add `textureLayers=shell`, `textureLayers=content`, or
-`textureLayers=tab` to compare which physical paper layers are painted. Add
+Use `texture=fiber`, `texture=watercolor`, or any exported paper preset key
+such as `texture=paper03HybridStrongDensity4` or
+`texture=paper05HybridStrongDensity9` to open the demo directly in one of the
+paper surface modes. In the demo, `texture=paper03HybridStrong` and
+`texture=paper05HybridStrong` intentionally resolve to those dense 512px
+presets; use `texture=paper03HybridStrong2048` or
+`texture=paper05HybridStrong2048` only when you explicitly want to compare the
+large source tiles. Add `blend=multiply`, `blend=overlay`,
+`blend=soft-light`, `blend=color-burn`, or another supported blend value to
+compare texture compositing. Add `textureLayers=shell`,
+`textureLayers=content`, or `textureLayers=tab` to compare which physical
+paper layers are painted. Add
 `text=dark`, `text=light`, or `text=auto` to compare ink color behavior.
 
 `pnpm screenshots` refreshes the overview and attached-stack PNGs in

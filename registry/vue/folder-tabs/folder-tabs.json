@@ -88,6 +88,16 @@
       "target": "components/ui/folder-tabs/assets/paper/03-fibrous-cotton-rag-hybrid-strong-2048-repeat-3x3.png"
     },
     {
+      "path": "assets/paper/03-fibrous-cotton-rag-hybrid-strong-512-density4-tile.png",
+      "type": "registry:file",
+      "target": "components/ui/folder-tabs/assets/paper/03-fibrous-cotton-rag-hybrid-strong-512-density4-tile.png"
+    },
+    {
+      "path": "assets/paper/03-fibrous-cotton-rag-hybrid-strong-228-density9-tile.png",
+      "type": "registry:file",
+      "target": "components/ui/folder-tabs/assets/paper/03-fibrous-cotton-rag-hybrid-strong-228-density9-tile.png"
+    },
+    {
       "path": "assets/paper/05-creamy-fine-tooth-hybrid-strong-2048-tile.png",
       "type": "registry:file",
       "target": "components/ui/folder-tabs/assets/paper/05-creamy-fine-tooth-hybrid-strong-2048-tile.png"
@@ -96,6 +106,16 @@
       "path": "assets/paper/05-creamy-fine-tooth-hybrid-strong-2048-repeat-3x3.png",
       "type": "registry:file",
       "target": "components/ui/folder-tabs/assets/paper/05-creamy-fine-tooth-hybrid-strong-2048-repeat-3x3.png"
+    },
+    {
+      "path": "assets/paper/05-creamy-fine-tooth-hybrid-strong-512-density4-tile.png",
+      "type": "registry:file",
+      "target": "components/ui/folder-tabs/assets/paper/05-creamy-fine-tooth-hybrid-strong-512-density4-tile.png"
+    },
+    {
+      "path": "assets/paper/05-creamy-fine-tooth-hybrid-strong-228-density9-tile.png",
+      "type": "registry:file",
+      "target": "components/ui/folder-tabs/assets/paper/05-creamy-fine-tooth-hybrid-strong-228-density9-tile.png"
     }
   ]
 }

@@ -3,7 +3,6 @@ import { computed, defineComponent, h, ref } from 'vue';
 import {
   FolderAttachment,
   FolderTabs,
-  folderPaperTexturePresetOptions,
   getFolderPaperTextureStyle,
   normalizeFolderSurfaceTextColor,
   normalizeFolderSurfaceTextureBlendMode,
@@ -21,7 +20,9 @@ import {
 type DemoSurfaceMode =
   | 'clean'
   | 'fiber'
-  | FolderPaperTexturePresetKey;
+  | FolderPaperTexturePresetKey
+  | 'paper03HybridStrong2048'
+  | 'paper05HybridStrong2048';
 
 const icon = (name: string, children: ReturnType<typeof h>[]) => defineComponent({
   name,
@@ -277,7 +278,15 @@ const tabRotationModes: Array<{ key: FolderTabRotation; label: string }> = [
 const surfaceModes: Array<{ key: DemoSurfaceMode; label: string }> = [
   { key: 'clean', label: 'Clean' },
   { key: 'fiber', label: 'Fiber paper' },
-  ...folderPaperTexturePresetOptions.map(({ key, label }) => ({ key, label })),
+  { key: 'watercolor', label: 'Watercolor paper' },
+  { key: 'paper03HybridStrongDensity4', label: '#3 dense 4x' },
+  { key: 'paper03HybridStrongDensity9', label: '#3 dense 9x' },
+  { key: 'paper03HybridStrongRepeat', label: '#3 repeat' },
+  { key: 'paper05HybridStrongDensity4', label: '#5 dense 4x' },
+  { key: 'paper05HybridStrongDensity9', label: '#5 dense 9x' },
+  { key: 'paper05HybridStrongRepeat', label: '#5 repeat' },
+  { key: 'paper03HybridStrong2048', label: '#3 2048 source' },
+  { key: 'paper05HybridStrong2048', label: '#5 2048 source' },
 ];
 const textureLayerModes: Array<{ key: FolderSurfaceTextureLayerPreset; label: string }> = [
   { key: 'all', label: 'All layers' },
@@ -425,7 +434,7 @@ const activeRail = computed(() => caseTabs.find((tab) => String(tab.key) === rai
 const primaryCount = computed(() => formatCount(activePrimary.value));
 const workbenchCount = computed(() => formatCount(activeWorkbench.value));
 const surfaceTexture = computed<FolderSurfaceTexture>(() => (surfaceMode.value === 'clean' ? 'none' : 'paper'));
-const surfaceStyle = computed(() => getFolderPaperTextureStyle(surfaceMode.value));
+const surfaceStyle = computed(() => getFolderPaperTextureStyle(getDemoPaperTexturePresetKey(surfaceMode.value)));
 const workbenchEdgeLabel = computed(() => {
   const edge = activeWorkbench.value?.edge ?? 'top';
 
@@ -457,7 +466,20 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
     || value === 'hybrid3'
     || value === '3'
   ) {
-    return 'paper03HybridStrong';
+    return 'paper03HybridStrongDensity4';
+  }
+
+  if (
+    value === 'paper03HybridStrong2048'
+    || value === 'paper3HybridStrong2048'
+    || value === 'paper03Original'
+    || value === 'paper3Original'
+    || value === 'paper03Source'
+    || value === 'paper3Source'
+    || value === 'paper03HighDetail'
+    || value === 'paper3HighDetail'
+  ) {
+    return 'paper03HybridStrong2048';
   }
 
   if (
@@ -472,6 +494,40 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
   }
 
   if (
+    value === 'paper03HybridStrongDensity4'
+    || value === 'paper3HybridStrongDensity4'
+    || value === 'paper03HybridStrong4x'
+    || value === 'paper3HybridStrong4x'
+    || value === 'paper03Density4'
+    || value === 'paper3Density4'
+    || value === 'paper03Density4x'
+    || value === 'paper3Density4x'
+    || value === 'hybrid3Density4'
+    || value === '3Density4'
+    || value === 'density3'
+  ) {
+    return 'paper03HybridStrongDensity4';
+  }
+
+  if (
+    value === 'paper03HybridStrongDensity9'
+    || value === 'paper3HybridStrongDensity9'
+    || value === 'paper03HybridStrong9x'
+    || value === 'paper3HybridStrong9x'
+    || value === 'paper03Density9'
+    || value === 'paper3Density9'
+    || value === 'paper03Density9x'
+    || value === 'paper3Density9x'
+    || value === 'hybrid3Density9'
+    || value === '3Density9'
+    || value === 'density9'
+    || value === 'density9-3'
+    || value === 'density3x9'
+  ) {
+    return 'paper03HybridStrongDensity9';
+  }
+
+  if (
     value === 'paper05HybridStrong'
     || value === 'paper5HybridStrong'
     || value === 'paper05'
@@ -479,7 +535,20 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
     || value === 'hybrid5'
     || value === '5'
   ) {
-    return 'paper05HybridStrong';
+    return 'paper05HybridStrongDensity4';
+  }
+
+  if (
+    value === 'paper05HybridStrong2048'
+    || value === 'paper5HybridStrong2048'
+    || value === 'paper05Original'
+    || value === 'paper5Original'
+    || value === 'paper05Source'
+    || value === 'paper5Source'
+    || value === 'paper05HighDetail'
+    || value === 'paper5HighDetail'
+  ) {
+    return 'paper05HybridStrong2048';
   }
 
   if (
@@ -493,11 +562,60 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
     return 'paper05HybridStrongRepeat';
   }
 
+  if (
+    value === 'paper05HybridStrongDensity4'
+    || value === 'paper5HybridStrongDensity4'
+    || value === 'paper05HybridStrong4x'
+    || value === 'paper5HybridStrong4x'
+    || value === 'paper05Density4'
+    || value === 'paper5Density4'
+    || value === 'paper05Density4x'
+    || value === 'paper5Density4x'
+    || value === 'hybrid5Density4'
+    || value === '5Density4'
+    || value === 'density5'
+  ) {
+    return 'paper05HybridStrongDensity4';
+  }
+
+  if (
+    value === 'paper05HybridStrongDensity9'
+    || value === 'paper5HybridStrongDensity9'
+    || value === 'paper05HybridStrong9x'
+    || value === 'paper5HybridStrong9x'
+    || value === 'paper05Density9'
+    || value === 'paper5Density9'
+    || value === 'paper05Density9x'
+    || value === 'paper5Density9x'
+    || value === 'hybrid5Density9'
+    || value === '5Density9'
+    || value === 'density9-5'
+    || value === 'density5x9'
+  ) {
+    return 'paper05HybridStrongDensity9';
+  }
+
   if (value === 'paper' || value === 'fiber' || value === 'fibers' || value === 'procedural') {
     return 'fiber';
   }
 
   return 'clean';
+}
+
+function getDemoPaperTexturePresetKey(mode: DemoSurfaceMode): FolderPaperTexturePresetKey | null {
+  if (mode === 'clean' || mode === 'fiber') {
+    return null;
+  }
+
+  if (mode === 'paper03HybridStrong2048') {
+    return 'paper03HybridStrong';
+  }
+
+  if (mode === 'paper05HybridStrong2048') {
+    return 'paper05HybridStrong';
+  }
+
+  return mode as FolderPaperTexturePresetKey;
 }
 
 function normalizeDemoTextureLayerMode(value: string | null): FolderSurfaceTextureLayerPreset {

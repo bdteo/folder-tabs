@@ -250,6 +250,16 @@ describe('folder tab helpers', () => {
       ?.toContain('05-creamy-fine-tooth-hybrid-strong-2048-tile');
     expect(getFolderPaperTextureStyle('paper05HybridStrongRepeat')['--folder-paper-texture-custom'])
       ?.toContain('05-creamy-fine-tooth-hybrid-strong-2048-repeat-3x3');
+    expect(getFolderPaperTextureStyle('paper05HybridStrongDensity4')).toMatchObject({
+      '--folder-paper-texture-size-custom': 'auto, 512px 512px',
+    });
+    expect(getFolderPaperTextureStyle('paper05HybridStrongDensity4')['--folder-paper-texture-custom'])
+      ?.toContain('05-creamy-fine-tooth-hybrid-strong-512-density4-tile');
+    expect(getFolderPaperTextureStyle('paper05HybridStrongDensity9')).toMatchObject({
+      '--folder-paper-texture-size-custom': 'auto, 228px 228px',
+    });
+    expect(getFolderPaperTextureStyle('paper05HybridStrongDensity9')['--folder-paper-texture-custom'])
+      ?.toContain('05-creamy-fine-tooth-hybrid-strong-228-density9-tile');
     expect(getFolderPaperTextureStyle('missing')).toEqual({});
   });
 
