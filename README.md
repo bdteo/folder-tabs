@@ -244,8 +244,8 @@ Available preset keys are `watercolor`, `paper03HybridStrong`, and
 opacity, and sizing values when an app wants to build its own selector. The
 image presets use the high-detail restored paper originals repeated at a
 compressed CSS scale, preserving the material bite without stretching the
-texture; older `paper03HybridStrongRepeat` and `paper05HybridStrongRepeat`
-keys remain accepted as compatibility aliases for the matching paper tile.
+texture. `paper03HybridStrongRepeat` and `paper05HybridStrongRepeat` expose
+the original repeat-preview texture variants as separate selector options.
 
 ## Geometry Helpers
 
