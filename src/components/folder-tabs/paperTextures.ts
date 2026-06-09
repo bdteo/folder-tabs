@@ -7,17 +7,11 @@ function getFolderPaperAssetUrl(filename: string): string {
   return `${baseUrl}assets/paper/${filename}`;
 }
 
-const paper03HybridStrongRepeatUrl = getFolderPaperAssetUrl(
-  '03-fibrous-cotton-rag-hybrid-strong-2048-repeat-3x3.png',
-);
 const paper03HybridStrongTileUrl = getFolderPaperAssetUrl(
-  '03-fibrous-cotton-rag-hybrid-strong-2048-tile.png',
-);
-const paper05HybridStrongRepeatUrl = getFolderPaperAssetUrl(
-  '05-creamy-fine-tooth-hybrid-strong-2048-repeat-3x3.png',
+  '03-fibrous-cotton-rag-hybrid-strong-128-tile.png',
 );
 const paper05HybridStrongTileUrl = getFolderPaperAssetUrl(
-  '05-creamy-fine-tooth-hybrid-strong-2048-tile.png',
+  '05-creamy-fine-tooth-hybrid-strong-128-tile.png',
 );
 const watercolorPaperUrl = getFolderPaperAssetUrl('paper-watercolor-rough.jpg');
 
@@ -66,8 +60,8 @@ export const folderPaperTexturePresets = {
     key: 'paper03HybridStrong',
     label: '#3 strong tile',
     url: paper03HybridStrongTileUrl,
-    size: '24rem 24rem',
-    filter: 'contrast(1.55) brightness(0.92) saturate(0.88)',
+    size: '8rem 8rem',
+    filter: 'contrast(1.72) brightness(0.93) saturate(0.8)',
     sheetOpacity: '0.74',
     contentOpacity: '0.48',
     tabOpacity: '0.62',
@@ -75,21 +69,21 @@ export const folderPaperTexturePresets = {
   },
   paper03HybridStrongRepeat: {
     key: 'paper03HybridStrongRepeat',
-    label: '#3 repeat',
-    url: paper03HybridStrongRepeatUrl,
-    size: '36rem 36rem',
-    filter: 'contrast(1.45) brightness(0.94) saturate(0.9)',
-    sheetOpacity: '0.7',
-    contentOpacity: '0.44',
-    tabOpacity: '0.58',
+    label: '#3 strong tile',
+    url: paper03HybridStrongTileUrl,
+    size: '8rem 8rem',
+    filter: 'contrast(1.72) brightness(0.93) saturate(0.8)',
+    sheetOpacity: '0.74',
+    contentOpacity: '0.48',
+    tabOpacity: '0.62',
     wash: 'linear-gradient(135deg, rgba(30, 27, 22, 0.08), rgba(12, 11, 10, 0.05))',
   },
   paper05HybridStrong: {
     key: 'paper05HybridStrong',
     label: '#5 strong tile',
     url: paper05HybridStrongTileUrl,
-    size: '24rem 24rem',
-    filter: 'contrast(1.7) brightness(0.9) saturate(0.86)',
+    size: '8rem 8rem',
+    filter: 'contrast(1.85) brightness(0.92) saturate(0.72)',
     sheetOpacity: '0.72',
     contentOpacity: '0.46',
     tabOpacity: '0.6',
@@ -97,18 +91,22 @@ export const folderPaperTexturePresets = {
   },
   paper05HybridStrongRepeat: {
     key: 'paper05HybridStrongRepeat',
-    label: '#5 repeat',
-    url: paper05HybridStrongRepeatUrl,
-    size: '36rem 36rem',
-    filter: 'contrast(1.55) brightness(0.92) saturate(0.88)',
-    sheetOpacity: '0.68',
-    contentOpacity: '0.42',
-    tabOpacity: '0.56',
+    label: '#5 strong tile',
+    url: paper05HybridStrongTileUrl,
+    size: '8rem 8rem',
+    filter: 'contrast(1.85) brightness(0.92) saturate(0.72)',
+    sheetOpacity: '0.72',
+    contentOpacity: '0.46',
+    tabOpacity: '0.6',
     wash: 'linear-gradient(135deg, rgba(30, 27, 22, 0.1), rgba(12, 11, 10, 0.06))',
   },
 } satisfies Record<FolderPaperTexturePresetKey, FolderPaperTexturePreset>;
 
-export const folderPaperTexturePresetOptions = Object.values(folderPaperTexturePresets);
+export const folderPaperTexturePresetOptions = [
+  folderPaperTexturePresets.watercolor,
+  folderPaperTexturePresets.paper03HybridStrong,
+  folderPaperTexturePresets.paper05HybridStrong,
+];
 
 export function getFolderPaperTexturePreset(
   key: FolderPaperTexturePresetKey | string | null | undefined,

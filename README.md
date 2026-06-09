@@ -238,11 +238,13 @@ const paperStyle = getFolderPaperTextureStyle('paper05HybridStrong');
 </template>
 ```
 
-Available preset keys are `watercolor`, `paper03HybridStrong`,
-`paper03HybridStrongRepeat`, `paper05HybridStrong`, and
-`paper05HybridStrongRepeat`. The exported `folderPaperTexturePresets` and
+Available preset keys are `watercolor`, `paper03HybridStrong`, and
+`paper05HybridStrong`. The exported `folderPaperTexturePresets` and
 `folderPaperTexturePresetOptions` objects expose the underlying URL, filter,
-opacity, and sizing values when an app wants to build its own selector.
+opacity, and sizing values when an app wants to build its own selector. The
+image presets use compact 128px PNG tiles that are smoothed for seamless CSS
+repeat; older `paper03HybridStrongRepeat` and `paper05HybridStrongRepeat`
+keys remain accepted as compatibility aliases for the matching compact tile.
 
 ## Geometry Helpers
 
@@ -325,10 +327,9 @@ The local demo accepts QA URL params for stable visual states: `activeTop`,
 `activeLeft`, `activeBottom`, `activeRight`, `activeChess`, and `activeCorner`
 set the initially selected folder, while `hoverTop`, `hoverLeft`,
 `hoverBottom`, `hoverRight`, `hoverChess`, and `hoverCorner` emulate hover.
-Use `texture=fiber`, `texture=watercolor`, `texture=paper03HybridStrong`,
-`texture=paper03HybridStrongRepeat`, `texture=paper05HybridStrong`, or
-`texture=paper05HybridStrongRepeat` to open the demo directly in one of the
-paper surface modes. Add `blend=multiply`, `blend=overlay`, `blend=soft-light`,
+Use `texture=fiber`, `texture=watercolor`, `texture=paper03HybridStrong`, or
+`texture=paper05HybridStrong` to open the demo directly in one of the paper
+surface modes. Add `blend=multiply`, `blend=overlay`, `blend=soft-light`,
 `blend=color-burn`, or another supported blend value to compare texture
 compositing. Add `textureLayers=shell`, `textureLayers=content`, or
 `textureLayers=tab` to compare which physical paper layers are painted. Add

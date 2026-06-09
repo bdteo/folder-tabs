@@ -241,13 +241,13 @@ describe('folder tab helpers', () => {
     expect(getFolderPaperTexturePreset('missing')).toBeNull();
 
     expect(getFolderPaperTextureStyle('paper05HybridStrong')).toMatchObject({
-      '--folder-paper-filter-custom': 'contrast(1.7) brightness(0.9) saturate(0.86)',
+      '--folder-paper-filter-custom': 'contrast(1.85) brightness(0.92) saturate(0.72)',
       '--folder-paper-sheet-opacity-custom': '0.72',
       '--folder-paper-content-opacity-custom': '0.46',
       '--folder-paper-tab-opacity-custom': '0.6',
     });
     expect(getFolderPaperTextureStyle('paper05HybridStrong')['--folder-paper-texture-custom'])
-      ?.toContain('05-creamy-fine-tooth-hybrid-strong-2048-tile');
+      ?.toContain('05-creamy-fine-tooth-hybrid-strong-128-tile');
     expect(getFolderPaperTextureStyle('missing')).toEqual({});
   });
 

@@ -7,7 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 export const defaultHost = '127.0.0.1';
 export const defaultChromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const httpReadyAttempts = 300;
+const httpReadyAttempts = 600;
 
 export function assertWebSocketRuntime(commandName) {
   if (typeof WebSocket !== 'function') {

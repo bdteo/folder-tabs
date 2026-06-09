@@ -468,7 +468,7 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
     || value === 'hybrid3Repeat'
     || value === '3Repeat'
   ) {
-    return 'paper03HybridStrongRepeat';
+    return 'paper03HybridStrong';
   }
 
   if (
@@ -490,7 +490,7 @@ function normalizeDemoSurfaceMode(value: string | null): DemoSurfaceMode {
     || value === 'hybrid5Repeat'
     || value === '5Repeat'
   ) {
-    return 'paper05HybridStrongRepeat';
+    return 'paper05HybridStrong';
   }
 
   if (value === 'paper' || value === 'fiber' || value === 'fibers' || value === 'procedural') {
