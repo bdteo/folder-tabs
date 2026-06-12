@@ -357,7 +357,11 @@
   max-block-size: clamp(13rem, 42vh, 28rem);
   overflow-x: visible;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  /* No overscroll-behavior here: `contain` on an in-page rail makes the
+     browser swallow wheel events even when nothing overflows (a scroll
+     container with nothing to scroll still captures the gesture, and
+     `contain` forbids chaining to the page), freezing page scroll while
+     the cursor is over the rail. Scroll must chain to the page. */
   padding-block: var(--ft-padding);
   padding-inline-start: 0.25rem;
 }
